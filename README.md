@@ -1,6 +1,4 @@
 ## Erzeugen und starten der Container
-docker-compose -p equipment_app up -d
-or just
 docker compose up -d
 
 ## Starten und Stoppen der Container
