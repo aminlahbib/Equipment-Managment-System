@@ -4,6 +4,23 @@
 
 # Environment variables
 .env
-env.example
-docs
+
+# Temporary files
 COMMIT_MSG.txt
+
+# Build artifacts
+backend/target/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+
+# IDE files
+*.iml
+*.swp
+*.swo
+*~
+
+# Documentation directories
+docs/
+**/docs/
+
