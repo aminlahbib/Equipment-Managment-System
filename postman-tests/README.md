@@ -217,10 +217,22 @@ Each request includes automated tests:
 - Re-run login/register to get new token
 - Verify Authorization header format: `Bearer {token}`
 
+## Kubernetes Deployment Testing
+
+For testing the application deployed on Kubernetes, see:
+- **[KUBERNETES-TESTING.md](./KUBERNETES-TESTING.md)** - Complete Kubernetes testing guide
+- **Kubernetes Environment:** `Equipment-Management-System-Kubernetes.postman_environment.json`
+
+**Key differences for Kubernetes:**
+- Requires port-forward: `kubectl port-forward service/equipment-service 8080:80 -n equipment-system`
+- Same `base_url`: `http://localhost:8080` (accessed through port-forward)
+- All other testing workflows remain the same
+
 ## Notes
 
 - Admin endpoints (`/api/admin/**`) are currently public (no authentication required)
 - User endpoints require JWT token in Authorization header
 - Equipment IDs are auto-populated from responses for chained requests
 - Mock data matches Docker initialization scripts exactly
+- For Kubernetes: Port-forward must be running for all API requests
 
