@@ -24,14 +24,15 @@ RUN groupadd --system spring && \
 WORKDIR /app
 
 # Copy JAR from build stage
-COPY --from=build /app/target/*.jar app.jar
+# Note: Maven creates the JAR with the artifact name and version
+COPY --from=build /app/target/equipment-management-0.0.1-SNAPSHOT.jar app.jar
 
-# Change ownership to non-root user
-RUN chown spring:spring app.jar
+# Change ownership of directory and file to non-root user
+RUN chown -R spring:spring /app
 
 # Switch to non-root user
 USER spring:spring
 
 EXPOSE 8080
 
-ENTRYPOINT ["java","-jar","/app.jar"]
+ENTRYPOINT ["java","-jar","app.jar"]
