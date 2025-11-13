@@ -10,6 +10,11 @@ services:
     restart: unless-stopped
     ports:
       - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     healthcheck:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
       retries: 10
@@ -25,8 +30,9 @@ services:
       db:
         condition: service_healthy
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/swtp
-      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
     networks:
       - loan-network
 
@@ -36,7 +42,7 @@ services:
     ports:
       - "8081:80"
     environment:
-      REACT_APP_API_BASE_URL: /api/benutzer
+      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
     depends_on:
       - backend
     networks:

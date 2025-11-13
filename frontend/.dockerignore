@@ -1,0 +1,22 @@
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+README*
+
+# IDE
+.idea/
+.vscode/
+.DS_Store
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+
