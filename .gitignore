@@ -21,6 +21,6 @@ frontend/build/
 *~
 
 # Documentation directories
-docs/
-**/docs/
+docs/*
+
 
