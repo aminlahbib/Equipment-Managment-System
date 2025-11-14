@@ -9,6 +9,79 @@ Advanced operations and management guide for the Equipment Management System on 
 kubectl config current-context
 ```
 
+## Understanding Docker Compose vs Kubernetes
+
+### Why Different Image Building Approaches?
+
+**Docker Compose:**
+- Uses your host machine's Docker daemon
+- Simple: `docker-compose build` or `docker build`
+- Images are immediately available to containers
+- Best for: Quick local development and testing
+
+**Kubernetes (Minikube):**
+- Uses Minikube's isolated Docker daemon (separate from host)
+- Requires: `eval $(minikube docker-env)` before building
+- Images built on host are **not visible** to Minikube
+- Best for: Learning K8s, production-like environments
+
+### Comparison Table
+
+| Aspect | Docker Compose | Kubernetes (Minikube) |
+|--------|----------------|----------------------|
+| **Docker Daemon** | Uses host Docker daemon | Uses Minikube's Docker daemon (isolated) |
+| **Image Building** | `docker-compose build` or `docker build` | Must use `eval $(minikube docker-env)` first |
+| **Use Case** | Local development, quick testing | Learning K8s, production-like environment |
+| **Networking** | Simple Docker networks | Kubernetes Services, DNS, ClusterIP |
+| **Scaling** | Manual (scale services) | Declarative (replicas in YAML) |
+| **Orchestration** | Basic service dependencies | Full orchestration (health checks, restarts, etc.) |
+| **Configuration** | Environment variables, `.env` files | ConfigMaps, Secrets, environment variables |
+| **Storage** | Docker volumes | PersistentVolumeClaims (PVCs) |
+| **Service Discovery** | Service names in same network | Kubernetes DNS (service.namespace.svc.cluster.local) |
+
+### When to Use Each
+
+**Use Docker Compose when:**
+- Developing locally and need quick iteration
+- Testing application changes rapidly
+- Simple multi-container setup is sufficient
+- Don't need advanced orchestration features
+
+**Use Kubernetes when:**
+- Learning Kubernetes concepts
+- Need production-like environment locally
+- Want to practice scaling, health checks, rolling updates
+- Preparing for cloud deployments
+- Need advanced networking and service discovery
+
+### Image Building Workflow
+
+**Docker Compose:**
+```bash
+# Build images (uses host Docker)
+docker-compose build
+
+# Or build individually
+docker build -t myapp:latest ./app
+```
+
+**Kubernetes (Minikube):**
+```bash
+# Switch to Minikube's Docker daemon
+eval $(minikube docker-env)
+
+# Build images (now builds in Minikube)
+docker build -t myapp:latest ./app
+
+# Verify images are in Minikube
+docker images
+
+# Switch back to host Docker (optional)
+eval $(minikube docker-env -u)
+```
+
+**Important:** The `deploy.sh` script handles this automatically, but understanding the difference helps with troubleshooting.
+
 ## Management Commands
 
 ### View Logs
