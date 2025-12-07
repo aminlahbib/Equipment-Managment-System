@@ -4,15 +4,50 @@ A full-stack equipment loan management system built with Spring Boot, MySQL, and
 
 ## 🎯 Project Overview
 
-This system enables organizations to manage equipment inventory and track loans to users. Built as a learning journey through cloud-native technologies, it showcases the complete evolution from a basic web application to a production-ready, cloud-deployable system.
+This system enables organizations to manage equipment inventory and track loans to users. Built as a learning journey through cloud-native technologies, it showcases the complete evolution from a basic web application to a production-ready, cloud-deployable system with advanced security, comprehensive tracking, and modern UX.
 
 ## ✨ Key Features
 
-- **User Management**: Registration, authentication with JWT, and role-based access control
-- **Equipment Tracking**: Add, view, and manage equipment inventory
-- **Loan System**: Track equipment loans with timestamps and history
-- **Admin Dashboard**: Comprehensive management interface for users, equipment, and loans
-- **Audit Logging**: Complete history of all equipment transactions
+### 🔐 Security & Authentication
+- **JWT-based Authentication**: Secure token-based authentication with configurable expiration
+- **Role-Based Access Control (RBAC)**: Admin and user roles with granular permissions
+- **Two-Factor Authentication (2FA)**: TOTP-based 2FA using Google Authenticator with recovery codes
+- **Password Security**: Secure password hashing with salt and password reset functionality
+- **Input Validation**: Comprehensive validation on all API endpoints
+
+### 👤 User Management
+- **User Registration & Login**: Secure user registration and authentication
+- **Profile Management**: View and update user profile (name, email)
+- **Account Status**: Track account status (ACTIVE, INACTIVE, SUSPENDED, PENDING)
+- **Last Login Tracking**: Monitor user activity with last login timestamps
+
+### 📦 Equipment Management
+- **Equipment Tracking**: Comprehensive equipment inventory with detailed metadata
+- **Equipment Categories**: Organize equipment by category (Laptop, Camera, Audio, etc.)
+- **Status Tracking**: Track equipment status (AVAILABLE, BORROWED, MAINTENANCE, RETIRED)
+- **Condition Monitoring**: Monitor equipment condition (NEW, GOOD, FAIR, POOR)
+- **Location Tracking**: Track equipment location
+- **Serial Number Management**: Store and track serial numbers
+- **Search & Filter**: Advanced search and filtering capabilities with pagination
+
+### 📋 Loan System
+- **Equipment Borrowing**: Borrow equipment with optional expected return dates
+- **Loan Tracking**: Track active loans with detailed information
+- **Loan History**: Complete audit trail of all equipment transactions
+- **Overdue Tracking**: Identify and track overdue loans
+- **Expected Return Dates**: Set and monitor expected return dates
+
+### 👨‍💼 Admin Features
+- **User Management**: Full CRUD operations for users with search and filter
+- **Equipment Management**: Complete equipment lifecycle management
+- **Loan Management**: View current loans, history, and overdue items
+- **Account Control**: Manage user account status and roles
+- **Comprehensive Dashboard**: Admin dashboard with overview and statistics
+
+### 📊 Audit & Logging
+- **Complete Audit Trail**: Track all equipment actions (BORROW, RETURN, CREATE, UPDATE, DELETE)
+- **Action Types**: Detailed action logging with timestamps
+- **User Activity**: Track user interactions with equipment
 
 ## 🏗️ Architecture
 
@@ -21,21 +56,28 @@ This system enables organizations to manage equipment inventory and track loans 
 **Backend**
 - Java 17 with Spring Boot 3.2.3
 - Spring Security with JWT authentication
-- Spring Data JPA with Hibernate
+- Spring Data JPA with Hibernate and Specifications
 - MySQL 8.0 database
+- Flyway for database migrations
+- Spring Boot Actuator for health checks
 - Maven for dependency management
+- Google Authenticator library for 2FA
 
 **Frontend**
-- Vanilla JavaScript (ES6+)
+- Vanilla JavaScript (ES6+ modules)
+- Modern CSS with custom properties and design tokens
+- Dark/Light mode support
 - Client-side routing
 - RESTful API integration
-- Responsive CSS design
+- Responsive design with mobile support
 
 **Infrastructure**
 - Docker & Docker Compose
 - Kubernetes (Minikube/EKS)
 - NGINX for reverse proxy
 - Multi-stage Docker builds
+- Health checks and probes
+- Secrets management
 
 ### System Architecture
 
@@ -105,21 +147,32 @@ This project follows a structured learning path through modern DevOps practices:
 - Resource limits and requests
 - Complete Minikube deployment
 
-### 🚧 Phase 3: Ingress & Networking (Planned)
+### ✅ Phase 3: Modernization & Enhancement
+- Enhanced security (JWT, RBAC, 2FA)
+- Database schema enrichment with Flyway migrations
+- Advanced search and filtering
+- Profile management
+- Comprehensive API extensions
+- Testing and validation
+
+### 🚧 Phase 4: Ingress & Networking (Planned)
 - NGINX Ingress Controller
 - TLS/SSL termination
 - Path-based and host-based routing
 - Network policies
 
 ### 📋 Future Phases
-- Phase 4: Helm Charts for package management
-- Phase 5: AWS EKS cloud deployment
-- Phase 6: CI/CD pipeline automation
-- Phase 7: Observability (Prometheus, Grafana, Loki)
-- Phase 8: Security hardening & production readiness
+- Phase 5: Helm Charts for package management
+- Phase 6: AWS EKS cloud deployment
+- Phase 7: CI/CD pipeline automation
+- Phase 8: Observability (Prometheus, Grafana, Loki)
+- Phase 9: Advanced features (email notifications, reservations, reporting)
 
 ## 📖 Documentation
 
+- **[Modernization Summary](MODERNIZATION_SUMMARY.md)**: Complete overview of all enhancements
+- **[API Contract](docs/API_CONTRACT.md)**: Comprehensive API documentation
+- **[Testing Guide](docs/TESTING_GUIDE.md)**: Complete testing procedures
 - **[Learning Plan](docs/cloud_devops_learning_plan-3.md)**: Complete roadmap from Docker to Cloud
 - **[Phase 1 Docs](docs/Phase-1/)**: Docker optimization and security
 - **[Phase 2 Docs](docs/Phase-2/)**: Kubernetes fundamentals and deployment
@@ -139,7 +192,10 @@ This project follows a structured learning path through modern DevOps practices:
 │   │       ├── service/     # Business logic
 │   │       ├── model/       # JPA entities
 │   │       ├── repository/  # Data access
+│   │       ├── dto/         # Data Transfer Objects
 │   │       └── security/    # JWT & authentication
+│   ├── src/main/resources/
+│   │   └── db/migration/    # Flyway migrations
 │   └── pom.xml
 ├── frontend/                # Vanilla JS frontend
 │   ├── js/                  # JavaScript modules
@@ -155,19 +211,40 @@ This project follows a structured learning path through modern DevOps practices:
 
 ### API Endpoints
 
-**Authentication**
+#### Authentication (Public)
 - `POST /api/benutzer/register` - User registration
-- `POST /api/benutzer/login` - User login
-- `POST /api/benutzer/reset-password` - Password reset
+- `POST /api/benutzer/login` - User login (supports 2FA)
+- `PUT /api/benutzer/reset-password` - Password reset
 
-**Admin Operations**
-- `GET /api/admin/users` - List all users
+#### Two-Factor Authentication (Authenticated)
+- `POST /api/benutzer/2fa/enable` - Enable 2FA
+- `POST /api/benutzer/2fa/verify` - Verify and enable 2FA
+- `POST /api/benutzer/2fa/disable` - Disable 2FA
+
+#### User Operations (Authenticated)
+- `GET /api/benutzer/profile` - Get user profile
+- `PUT /api/benutzer/profile` - Update user profile
+- `GET /api/benutzer/equipment` - Get available equipment
+- `GET /api/benutzer/equipment/search` - Search equipment (with filters, pagination)
+- `GET /api/benutzer/ausleihen` - Get my borrowed equipment
+- `POST /api/benutzer/ausleihen/{id}` - Borrow equipment
+- `POST /api/benutzer/rueckgabe/{id}` - Return equipment
+
+#### Admin Operations (Admin Only)
+- `GET /api/admin/users` - Get all users
+- `GET /api/admin/users/search` - Search users (with filters, pagination)
+- `PUT /api/admin/users/{id}` - Update user (role, status)
 - `DELETE /api/admin/users/{id}` - Delete user
+- `GET /api/admin/equipment` - Get all equipment
+- `GET /api/admin/equipment/search` - Search equipment (with filters, pagination)
 - `POST /api/admin/equipment` - Add equipment
+- `PUT /api/admin/equipment/{id}` - Update equipment
 - `DELETE /api/admin/equipment/{id}` - Delete equipment
-- `GET /api/admin/equipment` - List available equipment
-- `GET /api/admin/ausleihen/current` - Current loans
-- `GET /api/admin/ausleihen/history` - Loan history
+- `GET /api/admin/ausleihen/current` - Get current loans
+- `GET /api/admin/ausleihen/history` - Get loan history
+- `GET /api/admin/ausleihen/overdue` - Get overdue loans
+
+For complete API documentation, see [API Contract](docs/API_CONTRACT.md).
 
 ## 🧪 Testing
 
@@ -186,15 +263,73 @@ mvn test
 mvn verify
 ```
 
+### Testing Guide
+See [Testing Guide](docs/TESTING_GUIDE.md) for comprehensive testing procedures covering:
+- Authentication flows
+- 2FA flows
+- User operations
+- Admin operations
+- Error handling
+- Edge cases
+- Security testing
+
 ## 🔒 Security Features
 
-- JWT-based authentication
-- Password hashing with salt
-- CORS configuration
+### Authentication & Authorization
+- JWT-based authentication with configurable expiration
+- Role-Based Access Control (RBAC) with USER and ADMIN roles
+- Two-Factor Authentication (TOTP) with Google Authenticator
+- Recovery codes for account recovery
+- Secure password hashing with salt
+- Password reset functionality
+
+### Input Validation & Security
+- Comprehensive input validation on all endpoints
 - SQL injection prevention via JPA
+- XSS prevention
+- CORS configuration
+- CSRF protection
+
+### Infrastructure Security
 - Non-root container execution
 - Kubernetes secrets for sensitive data
 - Security scanning with Trivy
+- Environment variable management
+- Secure secret handling
+
+## 📊 Database Schema
+
+### Entities
+- **benutzer**: User accounts with 2FA support, roles, and account status
+- **equipment**: Equipment inventory with categories, status, condition, and location
+- **ausleihe**: Active loans with expected return dates and notes
+- **logitem**: Complete audit log with action types
+
+### Enums
+- **Role**: USER, ADMIN
+- **AccountStatus**: ACTIVE, INACTIVE, SUSPENDED, PENDING
+- **EquipmentCategory**: LAPTOP, DESKTOP, CAMERA, AUDIO, VIDEO, PROJECTOR, NETWORKING, STORAGE, ACCESSORIES, OTHER
+- **EquipmentStatus**: AVAILABLE, BORROWED, MAINTENANCE, RETIRED
+- **ConditionStatus**: NEW, GOOD, FAIR, POOR
+- **AuditAction**: BORROW, RETURN, CREATE, UPDATE, DELETE
+
+### Migrations
+Database schema is managed with Flyway migrations:
+- V1: Initial schema
+- V2: Initial data
+- V3: Two-factor authentication columns
+- V4: Schema enrichment (categories, status, timestamps, indexes)
+
+## 🎨 Frontend Features
+
+- **Modern UI**: Apple-inspired design with clean aesthetics
+- **Dark/Light Mode**: System preference detection with manual toggle
+- **Responsive Design**: Mobile-first approach with full mobile support
+- **Smooth Animations**: Fade-in, slide, and hover animations
+- **User Dashboard**: Card-based equipment display with stats
+- **Admin Dashboard**: Sidebar navigation with comprehensive management tools
+- **Empty States**: Helpful empty state messages with icons
+- **Error Handling**: User-friendly error messages and validation feedback
 
 ## 🤝 Contributing
 
@@ -214,7 +349,11 @@ Built as part of a comprehensive Cloud DevOps learning journey, demonstrating pr
 - Kubernetes orchestration
 - Cloud-native architecture
 - DevOps automation principles
+- Modern security practices
+- Full-stack development
 
 ---
 
-**Status**: Active Development | **Current Phase**: Phase 2 Complete ✅ | **Next**: Ingress & Networking
+**Status**: Active Development | **Current Phase**: Phase 3 Complete ✅ | **Next**: Ingress & Networking
+
+**Latest Updates**: Enhanced security (2FA, RBAC), schema enrichment, advanced search/filter, profile management, comprehensive testing
