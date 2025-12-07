@@ -11,6 +11,9 @@ CREATE TABLE benutzer (
  password_hash VARBINARY (1000) not null,
  password_salt VARBINARY (1000) not null,
  role varchar(20) not null default 'USER',
+ two_factor_enabled boolean not null default false,
+ two_factor_secret varchar(128),
+ recovery_codes varchar(2048),
  CONSTRAINT name_unique UNIQUE (benutzername)
 )CHARACTER SET utf8mb4;
 

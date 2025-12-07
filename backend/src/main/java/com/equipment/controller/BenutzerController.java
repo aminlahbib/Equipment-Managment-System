@@ -3,12 +3,16 @@ package com.equipment.controller;
 import com.equipment.dto.*;
 import com.equipment.service.BenutzerService;
 import com.equipment.service.AusleiheService;
+import com.equipment.model.Benutzer;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/benutzer")
@@ -51,6 +55,26 @@ public class BenutzerController {
         return ResponseEntity.ok(benutzerService.login(request));
     }
 
+    @PostMapping("/2fa/enable")
+    public ResponseEntity<TwoFactorSetupResponse> enableTwoFactor() {
+        Benutzer current = getCurrentUser();
+        return ResponseEntity.ok(benutzerService.initiateTwoFactorSetup(current));
+    }
+
+    @PostMapping("/2fa/verify")
+    public ResponseEntity<List<String>> verifyTwoFactor(@Valid @RequestBody TwoFactorVerificationRequest request) {
+        Benutzer current = getCurrentUser();
+        List<String> recoveryCodes = benutzerService.verifyAndEnableTwoFactor(current, request.getCode());
+        return ResponseEntity.ok(recoveryCodes);
+    }
+
+    @PostMapping("/2fa/disable")
+    public ResponseEntity<?> disableTwoFactor() {
+        Benutzer current = getCurrentUser();
+        benutzerService.disableTwoFactor(current);
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/equipment")
     public ResponseEntity<?> getAvailableEquipment() {
         return ResponseEntity.ok(ausleiheService.getAvailableEquipment());
@@ -72,5 +96,14 @@ public class BenutzerController {
     public ResponseEntity<?> returnEquipment(@PathVariable Integer equipmentId) {
         ausleiheService.returnEquipment(equipmentId);
         return ResponseEntity.ok().build();
+    }
+
+    private Benutzer getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = auth != null ? auth.getPrincipal() : null;
+        if (principal instanceof Benutzer) {
+            return (Benutzer) principal;
+        }
+        throw new RuntimeException("Unauthorized");
     }
 } 
