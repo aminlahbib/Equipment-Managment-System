@@ -125,6 +125,12 @@ public class BenutzerController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/loan-rules")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getLoanRules() {
+        return ResponseEntity.ok(ausleiheService.getLoanRules());
+    }
+
     private Benutzer getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Object principal = auth != null ? auth.getPrincipal() : null;

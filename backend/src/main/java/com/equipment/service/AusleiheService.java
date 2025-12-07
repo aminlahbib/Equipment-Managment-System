@@ -1,5 +1,6 @@
 package com.equipment.service;
 
+import com.equipment.config.LoanRulesConfig;
 import com.equipment.dto.EquipmentSearchRequest;
 import com.equipment.exception.EquipmentException;
 import com.equipment.model.Ausleihe;
@@ -27,16 +28,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-
 public class AusleiheService {
     private final AusleiheRepository ausleiheRepository;
     private final EquipmentRepository equipmentRepository;
     private final LogItemRepository logItemRepository;
+    private final LoanRulesConfig loanRulesConfig;
 
-    public AusleiheService(AusleiheRepository ausleiheRepository, EquipmentRepository equipmentRepository, LogItemRepository logItemRepository) {
+    public AusleiheService(AusleiheRepository ausleiheRepository, EquipmentRepository equipmentRepository, LogItemRepository logItemRepository, LoanRulesConfig loanRulesConfig) {
         this.ausleiheRepository = ausleiheRepository;
         this.equipmentRepository = equipmentRepository;
         this.logItemRepository = logItemRepository;
+        this.loanRulesConfig = loanRulesConfig;
     }
 
     public List<Equipment> getAvailableEquipment() {
@@ -76,11 +78,48 @@ public class AusleiheService {
 
         Benutzer currentUser = (Benutzer) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+        // Business Rule 1: Check user loan quota
+        List<Ausleihe> userActiveLoans = ausleiheRepository.findByBenutzerId(currentUser.getId());
+        if (userActiveLoans.size() >= loanRulesConfig.getMaxLoansPerUser()) {
+            throw EquipmentException.badRequest(
+                String.format("You have reached the maximum number of active loans (%d). Please return some equipment first.",
+                    loanRulesConfig.getMaxLoansPerUser())
+            );
+        }
+
+        // Business Rule 2: Validate and set expected return date
+        LocalDate calculatedReturnDate = expectedReturnDate;
+        if (calculatedReturnDate == null) {
+            // Use default duration if not specified
+            calculatedReturnDate = LocalDate.now().plusDays(loanRulesConfig.getDefaultLoanDurationDays());
+        }
+
+        // Validate return date is not in the past
+        if (calculatedReturnDate.isBefore(LocalDate.now())) {
+            throw EquipmentException.badRequest("Expected return date cannot be in the past");
+        }
+
+        // Validate minimum loan duration
+        long loanDurationDays = java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), calculatedReturnDate);
+        if (loanDurationDays < loanRulesConfig.getMinLoanDurationDays()) {
+            throw EquipmentException.badRequest(
+                String.format("Minimum loan duration is %d day(s)", loanRulesConfig.getMinLoanDurationDays())
+            );
+        }
+
+        // Validate maximum loan duration
+        if (loanDurationDays > loanRulesConfig.getMaxLoanDurationDays()) {
+            throw EquipmentException.badRequest(
+                String.format("Maximum loan duration is %d days. Please select an earlier return date.",
+                    loanRulesConfig.getMaxLoanDurationDays())
+            );
+        }
+
         Ausleihe ausleihe = new Ausleihe();
         ausleihe.setBenutzer(currentUser);
         ausleihe.setEquipment(equipment);
         ausleihe.setAusleihe(LocalDateTime.now());
-        ausleihe.setExpectedReturnDate(expectedReturnDate);
+        ausleihe.setExpectedReturnDate(calculatedReturnDate);
 
         try {
             // Update equipment status to BORROWED
@@ -173,5 +212,38 @@ public class AusleiheService {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         return equipmentRepository.findAll(spec, pageable);
+    }
+
+    /**
+     * Check if a loan is overdue based on expected return date and grace period
+     */
+    public boolean isLoanOverdue(Ausleihe loan) {
+        if (loan.getExpectedReturnDate() == null) {
+            return false; // No expected return date, cannot be overdue
+        }
+        
+        LocalDate today = LocalDate.now();
+        LocalDate overdueDate = loan.getExpectedReturnDate().plusDays(loanRulesConfig.getGracePeriodDays());
+        return today.isAfter(overdueDate);
+    }
+
+    /**
+     * Get all overdue loans
+     */
+    public List<Ausleihe> getOverdueLoans() {
+        LocalDate today = LocalDate.now();
+        LocalDate overdueThreshold = today.minusDays(loanRulesConfig.getGracePeriodDays());
+        
+        return ausleiheRepository.findAll().stream()
+                .filter(loan -> loan.getExpectedReturnDate() != null)
+                .filter(loan -> loan.getExpectedReturnDate().isBefore(overdueThreshold))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get loan rules configuration (for frontend display)
+     */
+    public LoanRulesConfig getLoanRules() {
+        return loanRulesConfig;
     }
 } 
