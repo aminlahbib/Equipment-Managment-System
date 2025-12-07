@@ -3,7 +3,6 @@ package com.equipment.service;
 import com.equipment.dto.*;
 import com.equipment.exception.EquipmentException;
 import com.equipment.model.Benutzer;
-import com.equipment.model.AccountStatus;
 import com.equipment.model.Role;
 import com.equipment.repository.BenutzerRepository;
 import com.equipment.repository.specification.BenutzerSpecifications;
@@ -22,8 +21,6 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
