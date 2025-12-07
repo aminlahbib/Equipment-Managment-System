@@ -25,7 +25,7 @@ public class Benutzer {
     private byte[] passwordSalt;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", nullable = false, length = 20, columnDefinition = "varchar(20)")
     private Role role = Role.USER;
 
     public Benutzer(Integer id, String benutzername, String vorname, String nachname, byte[] passwordHash, byte[] passwordSalt, Role role) {
