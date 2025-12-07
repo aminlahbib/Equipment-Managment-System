@@ -23,4 +23,6 @@ frontend/build/
 # Documentation directories
 docs/*
 
+/target/
+/backend/target/
 
