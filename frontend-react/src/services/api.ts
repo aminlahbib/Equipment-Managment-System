@@ -1,4 +1,4 @@
-import { API_BASE_URL, getApiBaseUrl } from '../utils/constants';
+import { getApiBaseUrl } from '../utils/constants';
 import { getToken, removeToken, isTokenExpired } from '../utils/token';
 import type {
   Equipment,
@@ -8,9 +8,8 @@ import type {
   MaintenanceRecord,
   SearchFilters,
   PaginatedResponse,
-  ApiResponse,
 } from '../types';
-import type { EquipmentStatus, Role, AccountStatus, ReservationStatus, MaintenanceType, MaintenanceStatus } from '../types';
+import type { Role, AccountStatus, MaintenanceType } from '../types';
 
 class ApiClient {
   private baseUrl: string;
@@ -48,7 +47,7 @@ class ApiClient {
 
     const token = this.getAuthToken();
     if (token) {
-      headers['Authorization'] = token;
+      (headers as Record<string, string>)['Authorization'] = token;
     }
 
     try {
@@ -61,6 +60,10 @@ class ApiClient {
         removeToken();
         // Redirect will be handled by router/auth context
         throw new Error('Session expired. Please log in again.');
+      }
+
+      if (response.status === 403) {
+        throw new Error('Access denied. You do not have permission to perform this action.');
       }
 
       if (!response.ok) {

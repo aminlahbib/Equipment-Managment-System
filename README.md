@@ -1,6 +1,6 @@
 # Equipment Management System
 
-A full-stack equipment loan management system built with Spring Boot, MySQL, and vanilla JavaScript, demonstrating modern DevOps practices from containerization to Kubernetes orchestration.
+A full-stack equipment loan management system built with Spring Boot, React, TypeScript, and MySQL, demonstrating modern DevOps practices from containerization to Kubernetes orchestration.
 
 ## 🎯 Project Overview
 
@@ -76,12 +76,17 @@ This system enables organizations to manage equipment inventory and track loans 
 - Google Authenticator library for 2FA
 
 **Frontend**
-- Vanilla JavaScript (ES6+ modules)
-- Modern CSS with custom properties and design tokens
+- **React 18** with TypeScript
+- **Vite** for fast development and optimized builds
+- **Tailwind CSS** for modern, responsive styling
+- **React Router** for client-side routing
+- **React Hook Form + Zod** for form validation
+- **Zustand** for state management
+- **Lucide React** for icons
 - Dark/Light mode support
-- Client-side routing
-- RESTful API integration
-- Responsive design with mobile support
+- Fully responsive design (mobile, tablet, desktop)
+- Code splitting and lazy loading for performance
+- Accessibility features (ARIA labels, keyboard navigation)
 
 **Infrastructure**
 - Docker & Docker Compose
@@ -94,19 +99,20 @@ This system enables organizations to manage equipment inventory and track loans 
 ### System Architecture
 
 ```
-┌─────────────┐      ┌──────────────┐      ┌──────────────┐
-│   Frontend  │─────▶│   Backend    │─────▶│    MySQL     │
-│  (Nginx)    │      │ (Spring Boot)│      │   Database   │
-│   Port 8081 │      │   Port 8080  │      │   Port 3306  │
-└─────────────┘      └──────────────┘      └──────────────┘
+┌─────────────────┐      ┌──────────────┐      ┌──────────────┐
+│   Frontend      │─────▶│   Backend    │─────▶│    MySQL     │
+│  (React + Vite) │      │ (Spring Boot)│      │   Database   │
+│   Port 3000     │      │   Port 8080  │      │   Port 3306  │
+└─────────────────┘      └──────────────┘      └──────────────┘
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Docker & Docker Compose
-- Java 17 (for local development)
-- Maven 3.8+ (for local development)
+- Node.js 20+ (for frontend development)
+- Java 17 (for backend development)
+- Maven 3.8+ (for backend development)
 
 ### Running with Docker Compose
 
@@ -127,9 +133,49 @@ docker compose up -d
 ```
 
 4. Access the application:
-- Frontend: http://localhost:8081
-- Backend API: http://localhost:8080
-- Admin Dashboard: http://localhost:8081/templates/Admin-Dashboard.html
+- **Frontend (React)**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **API Health Check**: http://localhost:8080/actuator/health
+
+### Creating an Admin User
+
+1. Register a user through the frontend or API:
+```bash
+curl -X POST http://localhost:8080/api/benutzer/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "benutzername": "admin",
+    "vorname": "Admin",
+    "nachname": "User",
+    "password": "admin123"
+  }'
+```
+
+2. Update the user's role to ADMIN in the database:
+```sql
+UPDATE benutzer SET role = 'ADMIN' WHERE benutzername = 'admin';
+```
+
+3. Login with the admin credentials at http://localhost:3000
+
+For detailed instructions, see [Admin Login Guide](docs/ADMIN_LOGIN.md).
+
+### Running Locally (Development)
+
+#### Backend
+```bash
+cd backend
+mvn spring-boot:run
+```
+
+#### Frontend
+```bash
+cd frontend-react
+npm install
+npm run dev
+```
+
+The frontend will be available at http://localhost:3000
 
 ### Running on Kubernetes
 
@@ -167,29 +213,42 @@ This project follows a structured learning path through modern DevOps practices:
 - Comprehensive API extensions
 - Testing and validation
 
-### 🚧 Phase 4: Ingress & Networking (Planned)
+### ✅ Phase 4: Modern UI Rework
+- Complete React + TypeScript frontend rebuild
+- Modern component library with Tailwind CSS
+- Responsive design with mobile support
+- Dark/Light mode implementation
+- Code splitting and performance optimization
+- Accessibility improvements
+- Production-ready Docker configuration
+
+### 🚧 Phase 5: Ingress & Networking (Planned)
 - NGINX Ingress Controller
 - TLS/SSL termination
 - Path-based and host-based routing
 - Network policies
 
 ### 📋 Future Phases
-- Phase 5: Helm Charts for package management
-- Phase 6: AWS EKS cloud deployment
-- Phase 7: CI/CD pipeline automation
-- Phase 8: Observability (Prometheus, Grafana, Loki)
-- Phase 9: Advanced features (email notifications, reservations, reporting)
+- Phase 6: Helm Charts for package management
+- Phase 7: AWS EKS cloud deployment
+- Phase 8: CI/CD pipeline automation
+- Phase 9: Observability (Prometheus, Grafana, Loki)
+- Phase 10: Advanced features (email notifications, reporting, analytics)
 
 ## 📖 Documentation
 
+- **[Admin Login Guide](docs/ADMIN_LOGIN.md)**: How to create and login as admin user
+- **[Admin Security](docs/ADMIN_SECURITY.md)**: Admin dashboard and endpoint security documentation
+- **[UI Rework Report](docs/UI_REWORK_REPORT.md)**: Complete analysis of the React UI rework
+- **[UI Implementation Plan](docs/UI_REWORK_IMPLEMENTATION_PLAN.md)**: Detailed implementation plan
 - **[Modernization Summary](MODERNIZATION_SUMMARY.md)**: Complete overview of all enhancements
-- **[API Contract](docs/API_CONTRACT.md)**: Comprehensive API documentation
 - **[Testing Guide](docs/TESTING_GUIDE.md)**: Complete testing procedures
-- **[Learning Plan](docs/cloud_devops_learning_plan-3.md)**: Complete roadmap from Docker to Cloud
-- **[Phase 1 Docs](docs/Phase-1/)**: Docker optimization and security
-- **[Phase 2 Docs](docs/Phase-2/)**: Kubernetes fundamentals and deployment
+- **[Learning Plan](docs/old/cloud_devops_learning_plan-3.md)**: Complete roadmap from Docker to Cloud
+- **[Phase 1 Docs](docs/old/Phase-1/)**: Docker optimization and security
+- **[Phase 2 Docs](docs/old/Phase-2/)**: Kubernetes fundamentals and deployment
 - **[Kubernetes Guides](k8s/docs/)**: Deployment workflows and troubleshooting
 - **[API Testing](postman-tests/)**: Postman collections for testing
+- **[React Frontend README](frontend-react/README.md)**: React frontend specific documentation
 
 ## 🔧 Development
 
@@ -209,16 +268,26 @@ This project follows a structured learning path through modern DevOps practices:
 │   ├── src/main/resources/
 │   │   └── db/migration/    # Flyway migrations
 │   └── pom.xml
-├── frontend/                # Vanilla JS frontend
-│   ├── js/                  # JavaScript modules
-│   ├── css/                 # Stylesheets
-│   └── templates/           # HTML pages
+├── frontend-react/          # React + TypeScript frontend
+│   ├── src/
+│   │   ├── components/      # React components
+│   │   │   ├── ui/         # Base UI components
+│   │   │   ├── layout/     # Layout components
+│   │   │   ├── features/   # Feature components
+│   │   │   └── admin/      # Admin components
+│   │   ├── pages/          # Page components
+│   │   ├── context/        # React Context providers
+│   │   ├── services/       # API client
+│   │   ├── types/          # TypeScript types
+│   │   └── utils/          # Utility functions
+│   ├── Dockerfile          # Production Docker image
+│   └── package.json
 ├── db/                      # Database configuration
 │   └── initdb/              # SQL initialization scripts
 ├── k8s/                     # Kubernetes manifests
 │   ├── docs/                # Deployment guides
 │   └── *.yaml               # K8s resource definitions
-└── docs/                    # Learning materials
+└── docs/                    # Documentation
 ```
 
 ### API Endpoints
@@ -271,8 +340,6 @@ This project follows a structured learning path through modern DevOps practices:
 - `PUT /api/admin/reservations/{id}/confirm` - Confirm reservation
 - `PUT /api/admin/reservations/{id}/cancel` - Cancel reservation (admin)
 
-For complete API documentation, see [API Contract](docs/API_CONTRACT.md).
-
 ## 🧪 Testing
 
 ### Postman Collections
@@ -288,6 +355,10 @@ mvn test
 
 # Integration tests
 mvn verify
+
+# Frontend build test
+cd frontend-react
+npm run build
 ```
 
 ### Testing Guide
@@ -331,6 +402,8 @@ See [Testing Guide](docs/TESTING_GUIDE.md) for comprehensive testing procedures 
 - **equipment**: Equipment inventory with categories, status, condition, and location
 - **ausleihe**: Active loans with expected return dates and notes
 - **logitem**: Complete audit log with action types
+- **maintenance_records**: Equipment maintenance history and scheduling
+- **reservations**: Equipment reservation system
 
 ### Enums
 - **Role**: USER, ADMIN
@@ -339,6 +412,9 @@ See [Testing Guide](docs/TESTING_GUIDE.md) for comprehensive testing procedures 
 - **EquipmentStatus**: AVAILABLE, BORROWED, MAINTENANCE, RETIRED
 - **ConditionStatus**: NEW, GOOD, FAIR, POOR
 - **AuditAction**: BORROW, RETURN, CREATE, UPDATE, DELETE
+- **MaintenanceType**: ROUTINE, REPAIR, INSPECTION, CLEANING, CALIBRATION, UPGRADE, OTHER
+- **MaintenanceStatus**: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED, OVERDUE
+- **ReservationStatus**: PENDING, CONFIRMED, ACTIVE, COMPLETED, CANCELLED, EXPIRED
 
 ### Migrations
 Database schema is managed with Flyway migrations:
@@ -346,17 +422,38 @@ Database schema is managed with Flyway migrations:
 - V2: Initial data
 - V3: Two-factor authentication columns
 - V4: Schema enrichment (categories, status, timestamps, indexes)
+- V6: Maintenance records table
+- V7: Reservations table
 
 ## 🎨 Frontend Features
 
-- **Modern UI**: Apple-inspired design with clean aesthetics
+### Modern React UI
+- **React 18** with TypeScript for type safety
+- **Vite** for fast development and optimized production builds
+- **Tailwind CSS** for modern, responsive styling
+- **Component Library**: Reusable UI components (Button, Card, Modal, Toast, etc.)
 - **Dark/Light Mode**: System preference detection with manual toggle
-- **Responsive Design**: Mobile-first approach with full mobile support
+- **Responsive Design**: Mobile-first approach with full mobile, tablet, and desktop support
 - **Smooth Animations**: Fade-in, slide, and hover animations
-- **User Dashboard**: Card-based equipment display with stats
-- **Admin Dashboard**: Sidebar navigation with comprehensive management tools
-- **Empty States**: Helpful empty state messages with icons
-- **Error Handling**: User-friendly error messages and validation feedback
+- **Code Splitting**: Lazy loading for optimal performance
+- **Accessibility**: ARIA labels, keyboard navigation, focus management
+
+### User Features
+- **Landing Page**: Modern landing page with feature highlights
+- **Authentication**: Login, registration, and password reset flows
+- **Dashboard**: Equipment browsing with search, filter, and category selection
+- **Activity Page**: Loan history with filtering and search
+- **Reservations**: Create and manage equipment reservations
+- **Profile Management**: View and update user profile
+
+### Admin Features
+- **Admin Dashboard**: Comprehensive admin interface with sidebar navigation
+- **Overview**: Statistics and quick actions
+- **Equipment Management**: Full CRUD operations with search and filters
+- **User Management**: Manage users, roles, and account status
+- **Loan Management**: View current loans, history, and overdue items
+- **Maintenance Management**: Schedule and track equipment maintenance
+- **Reservation Management**: View and confirm reservations
 
 ## 🤝 Contributing
 
@@ -378,9 +475,16 @@ Built as part of a comprehensive Cloud DevOps learning journey, demonstrating pr
 - DevOps automation principles
 - Modern security practices
 - Full-stack development
+- Modern frontend frameworks (React, TypeScript)
+- UI/UX design principles
 
 ---
 
-**Status**: Active Development | **Current Phase**: Phase 3 Complete ✅ | **Next**: Ingress & Networking
+**Status**: Active Development | **Current Phase**: Phase 4 Complete ✅ | **Next**: Ingress & Networking
 
-**Latest Updates**: Enhanced security (2FA, RBAC), schema enrichment, advanced search/filter, profile management, comprehensive testing
+**Latest Updates**: 
+- ✅ Complete React + TypeScript frontend rebuild
+- ✅ Modern UI with Tailwind CSS
+- ✅ Responsive design and accessibility
+- ✅ Performance optimizations
+- ✅ Production-ready Docker configuration

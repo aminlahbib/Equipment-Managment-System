@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "equipment-management-system",
-		"name": "Equipment Management System",
-		"description": "Complete API collection for Equipment Management System with authentication, equipment management, and loan operations",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"_postman_id": "equipment-management-system-v2",
+		"name": "Equipment Management System - Complete API",
+		"description": "Complete API collection for Equipment Management System with authentication, 2FA, equipment management, loans, reservations, maintenance, and admin operations",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "equipment-management"
 	},
 	"item": [
 		{
@@ -24,6 +25,7 @@
 									"    var jsonData = pm.response.json();",
 									"    pm.expect(jsonData).to.have.property('token');",
 									"    pm.environment.set(\"auth_token\", jsonData.token);",
+									"    pm.environment.set(\"user_token\", jsonData.token);",
 									"});"
 								],
 								"type": "text/javascript"
@@ -46,12 +48,56 @@
 							"raw": "{{base_url}}/api/benutzer/register",
 							"host": ["{{base_url}}"],
 							"path": ["api", "benutzer", "register"]
-						}
+						},
+						"description": "Register a new user. Returns JWT token on success."
 					},
 					"response": []
 				},
 				{
 					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.environment.set(\"auth_token\", jsonData.token);",
+									"    pm.environment.set(\"user_token\", jsonData.token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"benutzername\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "login"]
+						},
+						"description": "Login with username and password. Returns JWT token. If 2FA is enabled, will return 401 with message requiring 2FA code."
+					},
+					"response": []
+				},
+				{
+					"name": "Login with 2FA",
 					"event": [
 						{
 							"listen": "test",
@@ -81,13 +127,56 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"benutzername\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\"\n}"
+							"raw": "{\n    \"benutzername\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\",\n    \"totpCode\": \"123456\"\n}"
 						},
 						"url": {
 							"raw": "{{base_url}}/api/benutzer/login",
 							"host": ["{{base_url}}"],
 							"path": ["api", "benutzer", "login"]
+						},
+						"description": "Login with 2FA code. Use this when user has 2FA enabled. totpCode is the 6-digit code from authenticator app."
+					},
+					"response": []
+				},
+				{
+					"name": "Login with Recovery Code",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has token\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('token');",
+									"    pm.environment.set(\"auth_token\", jsonData.token);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
 						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"benutzername\": \"{{test_username}}\",\n    \"password\": \"{{test_password}}\",\n    \"recoveryCode\": \"{{recovery_code}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/login",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "login"]
+						},
+						"description": "Login using a recovery code instead of TOTP code. Use when authenticator app is unavailable."
 					},
 					"response": []
 				},
@@ -100,11 +189,6 @@
 								"exec": [
 									"pm.test(\"Status code is 200\", function () {",
 									"    pm.response.to.have.status(200);",
-									"});",
-									"",
-									"pm.test(\"Response has success message\", function () {",
-									"    var jsonData = pm.response.json();",
-									"    pm.expect(jsonData).to.have.property('message');",
 									"});"
 								],
 								"type": "text/javascript"
@@ -127,11 +211,258 @@
 							"raw": "{{base_url}}/api/benutzer/reset-password",
 							"host": ["{{base_url}}"],
 							"path": ["api", "benutzer", "reset-password"]
-						}
+						},
+						"description": "Reset password for a user. Requires username and new password."
 					},
 					"response": []
 				}
-			]
+			],
+			"description": "Authentication endpoints for user registration, login, and password reset."
+		},
+		{
+			"name": "Two-Factor Authentication",
+			"item": [
+				{
+					"name": "Enable 2FA",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has secret and QR URL\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('secret');",
+									"    pm.expect(jsonData).to.have.property('otpAuthUrl');",
+									"    pm.environment.set(\"two_factor_secret\", jsonData.secret);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/2fa/enable",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "2fa", "enable"]
+						},
+						"description": "Initiate 2FA setup. Returns secret and QR code URL. Scan QR code with Google Authenticator."
+					},
+					"response": []
+				},
+				{
+					"name": "Verify and Enable 2FA",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has recovery codes\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"    pm.expect(jsonData.length).to.be.greaterThan(0);",
+									"    if (jsonData.length > 0) {",
+									"        pm.environment.set(\"recovery_code\", jsonData[0]);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/2fa/verify",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "2fa", "verify"]
+						},
+						"description": "Verify 2FA code and complete setup. Returns recovery codes. Save these codes securely!"
+					},
+					"response": []
+				},
+				{
+					"name": "Disable 2FA",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/2fa/disable",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "2fa", "disable"]
+						},
+						"description": "Disable 2FA for the current user."
+					},
+					"response": []
+				}
+			],
+			"description": "Two-factor authentication endpoints for enabling, verifying, and disabling 2FA."
+		},
+		{
+			"name": "User Profile",
+			"item": [
+				{
+					"name": "Get Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has user data\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('benutzername');",
+									"    pm.expect(jsonData).to.have.property('vorname');",
+									"    pm.expect(jsonData).to.have.property('nachname');",
+									"    pm.environment.set(\"current_user_id\", jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "profile"]
+						},
+						"description": "Get current user's profile information."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Profile updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('vorname');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"vorname\": \"Updated\",\n    \"nachname\": \"Name\",\n    \"email\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/profile",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "profile"]
+						},
+						"description": "Update current user's profile (name, email). All fields are optional."
+					},
+					"response": []
+				}
+			],
+			"description": "User profile management endpoints."
 		},
 		{
 			"name": "User Equipment",
@@ -183,7 +514,88 @@
 							"raw": "{{base_url}}/api/benutzer/equipment",
 							"host": ["{{base_url}}"],
 							"path": ["api", "benutzer", "equipment"]
+						},
+						"description": "Get all available equipment (status = AVAILABLE)."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Equipment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has pagination\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"    pm.expect(jsonData).to.have.property('totalElements');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
 						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/equipment/search?searchTerm=&category=&status=AVAILABLE&page=0&size=20&sortBy=id&sortDirection=ASC",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "equipment", "search"],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": "",
+									"description": "Search in inventarnummer, bezeichnung, description"
+								},
+								{
+									"key": "category",
+									"value": "",
+									"description": "Filter by category (LAPTOP, CAMERA, etc.)"
+								},
+								{
+									"key": "status",
+									"value": "AVAILABLE",
+									"description": "Filter by status (AVAILABLE, BORROWED, MAINTENANCE, RETIRED)"
+								},
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Page number (0-indexed)"
+								},
+								{
+									"key": "size",
+									"value": "20",
+									"description": "Page size (max 100)"
+								},
+								{
+									"key": "sortBy",
+									"value": "id",
+									"description": "Sort field"
+								},
+								{
+									"key": "sortDirection",
+									"value": "ASC",
+									"description": "Sort direction (ASC, DESC)"
+								}
+							]
+						},
+						"description": "Search and filter equipment with pagination. All query parameters are optional."
 					},
 					"response": []
 				},
@@ -224,7 +636,8 @@
 							"raw": "{{base_url}}/api/benutzer/ausleihen",
 							"host": ["{{base_url}}"],
 							"path": ["api", "benutzer", "ausleihen"]
-						}
+						},
+						"description": "Get all equipment currently borrowed by the authenticated user."
 					},
 					"response": []
 				},
@@ -255,12 +668,59 @@
 							]
 						},
 						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"expectedReturnDate\": \"2024-12-31\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/ausleihen/{{equipment_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "ausleihen", "{{equipment_id}}"]
+						},
+						"description": "Borrow equipment. Body is optional - can include expectedReturnDate (YYYY-MM-DD format)."
+					},
+					"response": []
+				},
+				{
+					"name": "Borrow Equipment (No Return Date)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
 						"header": [],
 						"url": {
 							"raw": "{{base_url}}/api/benutzer/ausleihen/{{equipment_id}}",
 							"host": ["{{base_url}}"],
 							"path": ["api", "benutzer", "ausleihen", "{{equipment_id}}"]
-						}
+						},
+						"description": "Borrow equipment without specifying return date. Uses default loan duration."
 					},
 					"response": []
 				},
@@ -296,272 +756,1259 @@
 							"raw": "{{base_url}}/api/benutzer/rueckgabe/{{equipment_id}}",
 							"host": ["{{base_url}}"],
 							"path": ["api", "benutzer", "rueckgabe", "{{equipment_id}}"]
+						},
+						"description": "Return borrowed equipment."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Loan Rules",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has loan rules\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('maxLoansPerUser');",
+									"    pm.expect(jsonData).to.have.property('maxLoanDurationDays');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
 						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/loan-rules",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "loan-rules"]
+						},
+						"description": "Get loan rules configuration (max loans per user, duration limits, etc.)."
 					},
 					"response": []
 				}
-			]
+			],
+			"description": "User equipment operations: browse, search, borrow, and return equipment."
 		},
 		{
-			"name": "Admin",
+			"name": "Reservations",
 			"item": [
 				{
-					"name": "Users",
-					"item": [
+					"name": "Create Reservation",
+					"event": [
 						{
-							"name": "Get All Users",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Response is array\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.be.an('array');",
-											"});",
-											"",
-											"pm.test(\"User has required fields\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    if (jsonData.length > 0) {",
-											"        pm.expect(jsonData[0]).to.have.property('id');",
-											"        pm.expect(jsonData[0]).to.have.property('benutzername');",
-											"        pm.expect(jsonData[0]).to.have.property('vorname');",
-											"        pm.expect(jsonData[0]).to.have.property('nachname');",
-											"        pm.environment.set(\"user_id\", jsonData[0].id);",
-											"    }",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/api/admin/users",
-									"host": ["{{base_url}}"],
-									"path": ["api", "admin", "users"]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete User",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/api/admin/users/{{user_id}}",
-									"host": ["{{base_url}}"],
-									"path": ["api", "admin", "users", "{{user_id}}"]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "Equipment",
-					"item": [
-						{
-							"name": "Get All Equipment",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Response is array\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.be.an('array');",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/api/admin/equipment",
-									"host": ["{{base_url}}"],
-									"path": ["api", "admin", "equipment"]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Add Equipment",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Equipment created with ID\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.have.property('id');",
-											"    pm.expect(jsonData).to.have.property('inventarnummer');",
-											"    pm.expect(jsonData).to.have.property('bezeichnung');",
-											"    pm.environment.set(\"new_equipment_id\", jsonData.id);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [
-									{
-										"key": "Content-Type",
-										"value": "application/json"
-									}
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Reservation created\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('equipmentId');",
+									"    pm.environment.set(\"reservation_id\", jsonData.id);",
+									"});"
 								],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n    \"inventarnummer\": \"TEST001\",\n    \"bezeichnung\": \"Test Equipment\"\n}"
-								},
-								"url": {
-									"raw": "{{base_url}}/api/admin/equipment",
-									"host": ["{{base_url}}"],
-									"path": ["api", "admin", "equipment"]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Delete Equipment",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "DELETE",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/api/admin/equipment/{{new_equipment_id}}",
-									"host": ["{{base_url}}"],
-									"path": ["api", "admin", "equipment", "{{new_equipment_id}}"]
-								}
-							},
-							"response": []
+								"type": "text/javascript"
+							}
 						}
-					]
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"equipmentId\": {{equipment_id}},\n    \"startDate\": \"2024-12-15\",\n    \"endDate\": \"2024-12-20\",\n    \"notes\": \"For project presentation\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/reservations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "reservations"]
+						},
+						"description": "Create a new equipment reservation. startDate and endDate are required (YYYY-MM-DD format)."
+					},
+					"response": []
 				},
 				{
-					"name": "Loans",
-					"item": [
+					"name": "Get My Reservations",
+					"event": [
 						{
-							"name": "Get Current Loans",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Response is array\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.be.an('array');",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/api/admin/ausleihen/current",
-									"host": ["{{base_url}}"],
-									"path": ["api", "admin", "ausleihen", "current"]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "Get Loan History",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 200\", function () {",
-											"    pm.response.to.have.status(200);",
-											"});",
-											"",
-											"pm.test(\"Response is array\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    pm.expect(jsonData).to.be.an('array');",
-											"});",
-											"",
-											"pm.test(\"LogItem has required fields\", function () {",
-											"    var jsonData = pm.response.json();",
-											"    if (jsonData.length > 0) {",
-											"        pm.expect(jsonData[0]).to.have.property('id');",
-											"        pm.expect(jsonData[0]).to.have.property('benutzername');",
-											"        pm.expect(jsonData[0]).to.have.property('equipmentinventarnummer');",
-											"        pm.expect(jsonData[0]).to.have.property('equipmentbezeichnung');",
-											"        pm.expect(jsonData[0]).to.have.property('ausleihdatum');",
-											"    }",
-											"});"
-										],
-										"type": "text/javascript"
-									}
-								}
-							],
-							"request": {
-								"method": "GET",
-								"header": [],
-								"url": {
-									"raw": "{{base_url}}/api/admin/ausleihen/history",
-									"host": ["{{base_url}}"],
-									"path": ["api", "admin", "ausleihen", "history"]
-								}
-							},
-							"response": []
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
 						}
-					]
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/reservations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "reservations"]
+						},
+						"description": "Get all reservations for the current user."
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel Reservation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{auth_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/benutzer/reservations/{{reservation_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "benutzer", "reservations", "{{reservation_id}}"]
+						},
+						"description": "Cancel a reservation. Only works for PENDING or CONFIRMED reservations."
+					},
+					"response": []
 				}
-			]
+			],
+			"description": "Equipment reservation endpoints for users."
+		},
+		{
+			"name": "Admin - Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});",
+									"",
+									"pm.test(\"User has required fields\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.length > 0) {",
+									"        pm.expect(jsonData[0]).to.have.property('id');",
+									"        pm.expect(jsonData[0]).to.have.property('benutzername');",
+									"        pm.expect(jsonData[0]).to.have.property('role');",
+									"        pm.environment.set(\"user_id\", jsonData[0].id);",
+									"    }",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users"]
+						},
+						"description": "Get all users. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has pagination\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"    pm.expect(jsonData).to.have.property('totalElements');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/search?searchTerm=&role=&accountStatus=&page=0&size=20&sortBy=id&sortDirection=ASC",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "search"],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": "",
+									"description": "Search in benutzername, vorname, nachname, email"
+								},
+								{
+									"key": "role",
+									"value": "",
+									"description": "Filter by role (USER, ADMIN)"
+								},
+								{
+									"key": "accountStatus",
+									"value": "",
+									"description": "Filter by status (ACTIVE, INACTIVE, SUSPENDED, PENDING)"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDirection",
+									"value": "ASC"
+								}
+							]
+						},
+						"description": "Search and filter users with pagination. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"User updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('role');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"role\": \"ADMIN\",\n    \"accountStatus\": \"ACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "{{user_id}}"]
+						},
+						"description": "Update user role and/or account status. Requires ADMIN role. Both fields are optional."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/users/{{user_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "users", "{{user_id}}"]
+						},
+						"description": "Delete a user. Requires ADMIN role. Cannot delete users with active loans."
+					},
+					"response": []
+				}
+			],
+			"description": "Admin user management endpoints. All require ADMIN role and Bearer token."
+		},
+		{
+			"name": "Admin - Equipment",
+			"item": [
+				{
+					"name": "Get All Equipment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/equipment",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "equipment"]
+						},
+						"description": "Get all equipment (all statuses). Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Search Equipment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response has pagination\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('content');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/equipment/search?searchTerm=&category=&status=&page=0&size=20&sortBy=id&sortDirection=ASC",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "equipment", "search"],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": ""
+								},
+								{
+									"key": "category",
+									"value": "",
+									"description": "LAPTOP, CAMERA, AUDIO, etc."
+								},
+								{
+									"key": "status",
+									"value": "",
+									"description": "AVAILABLE, BORROWED, MAINTENANCE, RETIRED"
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "20"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDirection",
+									"value": "ASC"
+								}
+							]
+						},
+						"description": "Search and filter equipment with pagination. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Add Equipment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Equipment created with ID\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('inventarnummer');",
+									"    pm.expect(jsonData).to.have.property('bezeichnung');",
+									"    pm.environment.set(\"new_equipment_id\", jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"inventarnummer\": \"TEST001\",\n    \"bezeichnung\": \"Test Equipment\",\n    \"category\": \"LAPTOP\",\n    \"status\": \"AVAILABLE\",\n    \"conditionStatus\": \"NEW\",\n    \"location\": \"Lab A\",\n    \"serialNumber\": \"SN123456\",\n    \"description\": \"Test equipment for API testing\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/equipment",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "equipment"]
+						},
+						"description": "Add new equipment. Requires ADMIN role. inventarnummer and bezeichnung are required."
+					},
+					"response": []
+				},
+				{
+					"name": "Update Equipment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Equipment updated\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"bezeichnung\": \"Updated Equipment Name\",\n    \"description\": \"Updated description\",\n    \"category\": \"CAMERA\",\n    \"status\": \"MAINTENANCE\",\n    \"conditionStatus\": \"GOOD\",\n    \"location\": \"Lab B\",\n    \"serialNumber\": \"SN789012\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/equipment/{{equipment_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "equipment", "{{equipment_id}}"]
+						},
+						"description": "Update equipment. Requires ADMIN role. All fields are optional - only provided fields will be updated."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Equipment",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/equipment/{{new_equipment_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "equipment", "{{new_equipment_id}}"]
+						},
+						"description": "Delete equipment. Requires ADMIN role."
+					},
+					"response": []
+				}
+			],
+			"description": "Admin equipment management endpoints. All require ADMIN role."
+		},
+		{
+			"name": "Admin - Loans",
+			"item": [
+				{
+					"name": "Get Current Loans",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/ausleihen/current",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "ausleihen", "current"]
+						},
+						"description": "Get all currently active loans. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Loan History",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/ausleihen/history",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "ausleihen", "history"]
+						},
+						"description": "Get complete loan history (all returned loans). Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Overdue Loans",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/ausleihen/overdue",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "ausleihen", "overdue"]
+						},
+						"description": "Get all overdue loans (past expected return date). Requires ADMIN role."
+					},
+					"response": []
+				}
+			],
+			"description": "Admin loan management endpoints. All require ADMIN role."
+		},
+		{
+			"name": "Admin - Maintenance",
+			"item": [
+				{
+					"name": "Schedule Maintenance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Maintenance scheduled\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('id');",
+									"    pm.expect(jsonData).to.have.property('equipmentId');",
+									"    pm.expect(jsonData).to.have.property('type');",
+									"    pm.environment.set(\"maintenance_id\", jsonData.id);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"equipmentId\": {{equipment_id}},\n    \"type\": \"ROUTINE\",\n    \"description\": \"Regular maintenance check\",\n    \"cost\": 50.00,\n    \"scheduledDate\": \"2024-12-20\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/maintenance",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "maintenance"]
+						},
+						"description": "Schedule maintenance for equipment. Requires ADMIN role. Type: ROUTINE, REPAIR, INSPECTION, CLEANING, CALIBRATION, UPGRADE, OTHER"
+					},
+					"response": []
+				},
+				{
+					"name": "Start Maintenance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Maintenance started\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"    pm.expect(jsonData.status).to.equal('IN_PROGRESS');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/maintenance/{{maintenance_id}}/start",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "maintenance", "{{maintenance_id}}", "start"]
+						},
+						"description": "Start a scheduled maintenance. Changes status from SCHEDULED to IN_PROGRESS. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Complete Maintenance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Maintenance completed\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"    pm.expect(jsonData.status).to.equal('COMPLETED');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/maintenance/{{maintenance_id}}/complete",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "maintenance", "{{maintenance_id}}", "complete"]
+						},
+						"description": "Complete a maintenance. Changes status from IN_PROGRESS to COMPLETED. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Maintenance History",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/maintenance/equipment/{{equipment_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "maintenance", "equipment", "{{equipment_id}}"]
+						},
+						"description": "Get maintenance history for a specific equipment. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Scheduled Maintenance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/maintenance/scheduled",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "maintenance", "scheduled"]
+						},
+						"description": "Get all scheduled maintenance (status = SCHEDULED). Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Overdue Maintenance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/maintenance/overdue",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "maintenance", "overdue"]
+						},
+						"description": "Get all overdue maintenance (past scheduled date, not completed). Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Maintenance by Status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/maintenance/status/COMPLETED",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "maintenance", "status", "COMPLETED"]
+						},
+						"description": "Get maintenance records by status. Status values: SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED, OVERDUE. Requires ADMIN role."
+					},
+					"response": []
+				}
+			],
+			"description": "Admin maintenance management endpoints. All require ADMIN role."
+		},
+		{
+			"name": "Admin - Reservations",
+			"item": [
+				{
+					"name": "Get All Reservations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/reservations",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "reservations"]
+						},
+						"description": "Get all pending reservations. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Equipment Reservations",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is array\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.be.an('array');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/reservations/equipment/{{equipment_id}}",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "reservations", "equipment", "{{equipment_id}}"]
+						},
+						"description": "Get all reservations for a specific equipment. Requires ADMIN role."
+					},
+					"response": []
+				},
+				{
+					"name": "Confirm Reservation",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Reservation confirmed\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('status');",
+									"    pm.expect(jsonData.status).to.equal('CONFIRMED');",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{admin_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/reservations/{{reservation_id}}/confirm",
+							"host": ["{{base_url}}"],
+							"path": ["api", "admin", "reservations", "{{reservation_id}}", "confirm"]
+						},
+						"description": "Confirm a pending reservation. Changes status from PENDING to CONFIRMED. Requires ADMIN role."
+					},
+					"response": []
+				}
+			],
+			"description": "Admin reservation management endpoints. All require ADMIN role."
 		}
 	],
 	"variable": [
@@ -572,4 +2019,3 @@
 		}
 	]
 }
-

@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { getToken, removeToken, setToken, decodeToken } from '../utils/token';
+import { getToken, removeToken, setToken } from '../utils/token';
 import { apiClient } from '../services/api';
 import type { User } from '../types';
 

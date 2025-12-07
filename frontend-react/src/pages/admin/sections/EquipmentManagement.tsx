@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Search, LayoutGrid, List } from 'lucide-react';
+import { Plus, Trash2, Edit2 } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { EquipmentCard } from '../../../components/features/EquipmentCard';
 import { SearchBar } from '../../../components/features/SearchBar';
@@ -69,7 +69,7 @@ export const EquipmentManagement: React.FC = () => {
     }
   };
 
-  const categories = ['All', ...Array.from(new Set(equipment.map((item) => item.category).filter(Boolean)))];
+  const categories = ['All', ...Array.from(new Set(equipment.map((item) => item.category).filter((cat): cat is string => Boolean(cat))))];
   const statuses = ['All', ...Object.values(EquipmentStatus)];
 
   const filteredEquipment = equipment.filter((item) => {
