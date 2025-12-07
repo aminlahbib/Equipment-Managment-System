@@ -50,6 +50,18 @@ services:
     networks:
       - loan-network
 
+  frontend-react:
+    build: ./frontend-react
+    container_name: loan_frontend_react
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL:-http://localhost:8080}
+    depends_on:
+      - backend
+    networks:
+      - loan-network
+
 networks:
   loan-network:
     name: "loan-network"
