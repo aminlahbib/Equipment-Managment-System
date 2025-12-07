@@ -71,7 +71,6 @@ public class BenutzerService {
         // Compare the provided password with the stored password hash and salt
         if (!comparePasswords(request.getPassword(), benutzer.getPasswordSalt(), benutzer.getPasswordHash())) {
             log.debug("Incorrect password for user: {}", request.getBenutzername());
-            log.debug("Stored password hash: {}", new String(benutzer.getPasswordHash()));
             throw new BadCredentialsException("Invalid Password");
         }
 
