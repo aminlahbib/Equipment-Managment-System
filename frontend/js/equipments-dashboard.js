@@ -1,4 +1,4 @@
-import { searchEquipment, getMyBorrowedEquipment, borrowEquipment, returnEquipment } from './api.js';
+import { searchEquipment, getMyBorrowedEquipment, borrowEquipment, returnEquipment, createReservation, getMyReservations, cancelReservation, getLoanRules } from './api.js';
 import { decodeToken } from './utilities.js';
 import notifications from './notifications.js';
 import { exportToCSV, flattenEquipmentData, flattenLoanData } from './export.js';
@@ -6,6 +6,8 @@ import { exportToCSV, flattenEquipmentData, flattenLoanData } from './export.js'
 // Global state
 let availableEquipment = [];
 let borrowedEquipment = [];
+let reservations = [];
+let loanRules = null;
 let currentPage = 0;
 let totalPages = 0;
 let totalElements = 0;
@@ -26,7 +28,9 @@ initDashboard();
 window.initDashboard = async () => {
     displayUserInfo();
     setupEventListeners();
+    await loadLoanRules();
     await refreshData();
+    await loadReservations();
 };
 
 function displayUserInfo() {
@@ -209,6 +213,156 @@ async function refreshData() {
         loadBorrowedEquipment()
     ]);
 }
+
+async function loadLoanRules() {
+    try {
+        loanRules = await getLoanRules();
+    } catch (error) {
+        console.error("Failed to load loan rules", error);
+    }
+}
+
+async function loadReservations() {
+    const loadingEl = document.getElementById('reservations-loading');
+    const grid = document.getElementById("reservations-grid");
+    
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (grid) grid.style.display = 'none';
+
+    try {
+        reservations = await getMyReservations();
+        renderReservationsGrid();
+    } catch (error) {
+        console.error("Failed to load reservations", error);
+        notifications.error("Failed to load reservations: " + error.message);
+        if (grid) {
+            grid.innerHTML = `
+                <div class="text-center py-xl" style="grid-column: 1/-1;">
+                    <p>Failed to load reservations. Please try again.</p>
+                    <p class="text-secondary">${error.message}</p>
+                </div>
+            `;
+        }
+    } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (grid) grid.style.display = 'grid';
+    }
+}
+
+function renderReservationsGrid() {
+    const grid = document.getElementById("reservations-grid");
+    if (!grid) return;
+
+    if (reservations.length === 0) {
+        grid.innerHTML = `
+            <div class="card empty-state-card" style="grid-column: 1/-1;">
+                <div class="empty-state-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                </div>
+                <h3>No Reservations</h3>
+                <p>You haven't made any reservations yet. Reserve equipment for future use.</p>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = reservations.map(reservation => `
+        <div class="card card-hover equipment-card slide-up">
+            <div class="equipment-image-placeholder" style="background-color: rgba(0, 113, 227, 0.1); color: var(--accent-color);">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+            </div>
+            <div class="equipment-details">
+                <h3 style="font-size: 18px; margin-bottom: 4px;">${reservation.equipment?.bezeichnung || 'Unknown Equipment'}</h3>
+                <p class="text-secondary" style="font-size: 14px; margin-bottom: 8px;">ID: ${reservation.equipment?.inventarnummer || 'N/A'}</p>
+                <span class="badge ${getReservationStatusBadgeClass(reservation.status)}">${reservation.status || 'PENDING'}</span>
+                <p class="text-secondary mt-sm" style="font-size: 12px;">
+                    ${reservation.startDate ? `Start: ${new Date(reservation.startDate).toLocaleDateString()}` : ''}
+                    ${reservation.endDate ? `<br>End: ${new Date(reservation.endDate).toLocaleDateString()}` : ''}
+                </p>
+            </div>
+            <div class="equipment-actions">
+                ${reservation.status === 'PENDING' || reservation.status === 'CONFIRMED' ? `
+                    <button onclick="handleCancelReservation(${reservation.id})" class="btn btn-secondary btn-small" style="width: 100%;">Cancel</button>
+                ` : ''}
+            </div>
+        </div>
+    `).join("");
+}
+
+function getReservationStatusBadgeClass(status) {
+    switch(status?.toUpperCase()) {
+        case 'PENDING': return 'badge-secondary';
+        case 'CONFIRMED': return 'badge-success';
+        case 'ACTIVE': return 'badge-warning';
+        case 'COMPLETED': return 'badge-success';
+        case 'CANCELLED': return 'badge-error';
+        case 'EXPIRED': return 'badge-error';
+        default: return 'badge-secondary';
+    }
+}
+
+window.openReservationModal = () => {
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    const startDateInput = document.getElementById('reservation-start-date');
+    if (startDateInput) {
+        startDateInput.min = today;
+    }
+    const endDateInput = document.getElementById('reservation-end-date');
+    if (endDateInput) {
+        endDateInput.min = today;
+    }
+    document.getElementById('reservation-modal').classList.add('show');
+};
+
+window.closeReservationModal = () => {
+    document.getElementById('reservation-modal').classList.remove('show');
+    document.getElementById('reservationForm').reset();
+};
+
+window.handleCreateReservation = async () => {
+    const form = document.getElementById("reservationForm");
+    const equipmentId = parseInt(document.getElementById("reservation-equipment-id").value);
+    const startDate = document.getElementById("reservation-start-date").value;
+    const endDate = document.getElementById("reservation-end-date").value;
+    const notes = document.getElementById("reservation-notes").value;
+
+    try {
+        await createReservation({
+            equipmentId,
+            startDate,
+            endDate: endDate || null,
+            notes: notes || null
+        });
+        window.closeReservationModal();
+        notifications.success("Reservation created successfully!");
+        await loadReservations();
+    } catch (error) {
+        notifications.error("Failed to create reservation: " + error.message);
+    }
+};
+
+window.handleCancelReservation = async (id) => {
+    if (!confirm("Are you sure you want to cancel this reservation?")) return;
+    
+    try {
+        await cancelReservation(id);
+        notifications.success("Reservation cancelled successfully!");
+        await loadReservations();
+    } catch (error) {
+        notifications.error("Failed to cancel reservation: " + error.message);
+    }
+};
 
 function renderAvailableGrid() {
     const grid = document.getElementById("available-equipment-grid");

@@ -20,6 +20,12 @@
                 <li style="width: 100%;">
                     <a href="#" class="btn btn-ghost" style="width: 100%; justify-content: flex-start; padding-left: 0;" onclick="showSection('loans')">Loans</a>
                 </li>
+                <li style="width: 100%;">
+                    <a href="#" class="btn btn-ghost" style="width: 100%; justify-content: flex-start; padding-left: 0;" onclick="showSection('maintenance')">Maintenance</a>
+                </li>
+                <li style="width: 100%;">
+                    <a href="#" class="btn btn-ghost" style="width: 100%; justify-content: flex-start; padding-left: 0;" onclick="showSection('reservations')">Reservations</a>
+                </li>
             </ul>
         </nav>
         
@@ -167,6 +173,60 @@
             </div>
             <div id="loans-pagination-admin" class="pagination-container" style="display: none; margin-top: var(--spacing-lg);"></div>
         </div>
+
+        <!-- Maintenance Section (Hidden by default) -->
+        <div class="section hidden" id="maintenance-section">
+            <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2>Maintenance</h2>
+                <button onclick="openScheduleMaintenanceModal()" class="btn btn-primary">
+                    <span style="margin-right: 8px;">+</span> Schedule Maintenance
+                </button>
+            </div>
+            <div id="maintenance-loading-admin" class="text-center py-xl" style="display: none;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+            </div>
+            <div class="table-container">
+                <table class="table" id="maintenanceTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Equipment</th>
+                            <th>Type</th>
+                            <th>Scheduled Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Reservations Section (Hidden by default) -->
+        <div class="section hidden" id="reservations-section">
+            <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2>Reservations</h2>
+            </div>
+            <div id="reservations-loading-admin" class="text-center py-xl" style="display: none;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+            </div>
+            <div class="table-container">
+                <table class="table" id="reservationsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Equipment</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
     </main>
   </div>
 
@@ -189,6 +249,51 @@
             <div class="flex-between mt-lg">
                 <button type="button" onclick="closeAddEquipmentModal()" class="btn btn-secondary">Cancel</button>
                 <button type="submit" class="btn btn-primary">Add Item</button>
+            </div>
+        </form>
+  </div>
+</div>
+
+<!-- Schedule Maintenance Modal -->
+<div id="schedule-maintenance-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Schedule Maintenance</h3>
+            <button onclick="closeScheduleMaintenanceModal()" class="close-btn">&times;</button>
+        </div>
+        <form id="scheduleMaintenanceForm" onsubmit="event.preventDefault(); handleScheduleMaintenance();">
+            <div class="form-group">
+                <label class="form-label" for="maintenance-equipment-id">Equipment ID</label>
+                <input class="form-input" type="number" id="maintenance-equipment-id" name="equipmentId" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="maintenance-type">Type</label>
+                <select class="form-input" id="maintenance-type" name="type" required>
+                    <option value="">Select Type</option>
+                    <option value="ROUTINE">Routine</option>
+                    <option value="REPAIR">Repair</option>
+                    <option value="INSPECTION">Inspection</option>
+                    <option value="CLEANING">Cleaning</option>
+                    <option value="CALIBRATION">Calibration</option>
+                    <option value="UPGRADE">Upgrade</option>
+                    <option value="OTHER">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="maintenance-description">Description</label>
+                <textarea class="form-input" id="maintenance-description" name="description" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="maintenance-scheduled-date">Scheduled Date</label>
+                <input class="form-input" type="date" id="maintenance-scheduled-date" name="scheduledDate" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="maintenance-cost">Cost (optional)</label>
+                <input class="form-input" type="number" step="0.01" id="maintenance-cost" name="cost">
+            </div>
+            <div class="flex-between mt-lg">
+                <button type="button" onclick="closeScheduleMaintenanceModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Schedule</button>
             </div>
         </form>
   </div>

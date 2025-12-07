@@ -479,3 +479,218 @@ export async function getOverdueLoans() {
     }
     return await response.json();
 }
+
+// ============================================
+// Maintenance Management
+// ============================================
+
+export async function scheduleMaintenance(maintenanceData) {
+    const response = await fetch(adminBaseUrl + "/maintenance", {
+        method: "POST",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(maintenanceData)
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: "Failed to schedule maintenance" }));
+        throw new Error(error.message || "Failed to schedule maintenance");
+    }
+    return await response.json();
+}
+
+export async function startMaintenance(maintenanceId) {
+    const response = await fetch(adminBaseUrl + "/maintenance/" + maintenanceId + "/start", {
+        method: "PUT",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: "Failed to start maintenance" }));
+        throw new Error(error.message || "Failed to start maintenance");
+    }
+    return await response.json();
+}
+
+export async function completeMaintenance(maintenanceId) {
+    const response = await fetch(adminBaseUrl + "/maintenance/" + maintenanceId + "/complete", {
+        method: "PUT",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: "Failed to complete maintenance" }));
+        throw new Error(error.message || "Failed to complete maintenance");
+    }
+    return await response.json();
+}
+
+export async function getMaintenanceHistory(equipmentId) {
+    const response = await fetch(adminBaseUrl + "/maintenance/equipment/" + equipmentId, {
+        method: "GET",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        throw new Error("Failed to fetch maintenance history");
+    }
+    return await response.json();
+}
+
+export async function getScheduledMaintenance() {
+    const response = await fetch(adminBaseUrl + "/maintenance/scheduled", {
+        method: "GET",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        throw new Error("Failed to fetch scheduled maintenance");
+    }
+    return await response.json();
+}
+
+export async function getOverdueMaintenance() {
+    const response = await fetch(adminBaseUrl + "/maintenance/overdue", {
+        method: "GET",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        throw new Error("Failed to fetch overdue maintenance");
+    }
+    return await response.json();
+}
+
+// ============================================
+// Reservation Management
+// ============================================
+
+export async function createReservation(reservationData) {
+    const response = await fetch(baseUrl + "/reservations", {
+        method: "POST",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(reservationData)
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: "Failed to create reservation" }));
+        throw new Error(error.message || "Failed to create reservation");
+    }
+    return await response.json();
+}
+
+export async function getMyReservations() {
+    const response = await fetch(baseUrl + "/reservations", {
+        method: "GET",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        throw new Error("Failed to fetch reservations");
+    }
+    return await response.json();
+}
+
+export async function cancelReservation(reservationId) {
+    const response = await fetch(baseUrl + "/reservations/" + reservationId, {
+        method: "DELETE",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: "Failed to cancel reservation" }));
+        throw new Error(error.message || "Failed to cancel reservation");
+    }
+    return response;
+}
+
+export async function getAllReservations() {
+    const response = await fetch(adminBaseUrl + "/reservations", {
+        method: "GET",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        throw new Error("Failed to fetch reservations");
+    }
+    return await response.json();
+}
+
+export async function getEquipmentReservations(equipmentId) {
+    const response = await fetch(adminBaseUrl + "/reservations/equipment/" + equipmentId, {
+        method: "GET",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        throw new Error("Failed to fetch equipment reservations");
+    }
+    return await response.json();
+}
+
+export async function confirmReservation(reservationId) {
+    const response = await fetch(adminBaseUrl + "/reservations/" + reservationId + "/confirm", {
+        method: "PUT",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        const error = await response.json().catch(() => ({ message: "Failed to confirm reservation" }));
+        throw new Error(error.message || "Failed to confirm reservation");
+    }
+    return await response.json();
+}
+
+// ============================================
+// Loan Rules
+// ============================================
+
+export async function getLoanRules() {
+    const response = await fetch(baseUrl + "/loan-rules", {
+        method: "GET",
+        headers: {
+            "Authorization": getAuthorizationToken(),
+            "Content-Type": "application/json"
+        }
+    });
+    handleAuthError(response);
+    if (!response.ok) {
+        throw new Error("Failed to fetch loan rules");
+    }
+    return await response.json();
+}
