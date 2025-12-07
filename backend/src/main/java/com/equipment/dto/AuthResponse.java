@@ -1,9 +1,5 @@
 package com.equipment.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-
 public class AuthResponse {
     private String token;
 
