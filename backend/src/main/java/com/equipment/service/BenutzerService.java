@@ -49,6 +49,7 @@ public class BenutzerService {
         benutzer.setNachname(request.getNachname());
         benutzer.setPasswordHash(hashedPassword); // Store the hashed password
         benutzer.setPasswordSalt(salt); // Store the salt
+        benutzer.setRole(com.equipment.model.Role.USER); // Default role for new users
 
         benutzerRepository.save(benutzer);
 

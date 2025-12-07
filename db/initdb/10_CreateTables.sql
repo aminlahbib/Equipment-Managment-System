@@ -10,6 +10,7 @@ CREATE TABLE benutzer (
  nachname varchar(20) not null,
  password_hash VARBINARY (1000) not null,
  password_salt VARBINARY (1000) not null,
+ role varchar(20) not null default 'USER',
  CONSTRAINT name_unique UNIQUE (benutzername)
 )CHARACTER SET utf8mb4;
 

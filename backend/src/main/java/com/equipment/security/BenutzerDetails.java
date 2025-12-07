@@ -2,10 +2,12 @@ package com.equipment.security;
 
 import com.equipment.model.Benutzer;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 public class BenutzerDetails implements UserDetails {
     private final Benutzer benutzer;
@@ -16,7 +18,10 @@ public class BenutzerDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        if (benutzer.getRole() == null) {
+            return Collections.emptyList();
+        }
+        return List.of(new SimpleGrantedAuthority("ROLE_" + benutzer.getRole().name()));
     }
 
     @Override
