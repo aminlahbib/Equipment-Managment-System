@@ -1,11 +1,17 @@
 package com.equipment.dto;
 
-import lombok.Data;
-
+import jakarta.validation.constraints.NotBlank;
 
 public class AuthRequest {
+    @NotBlank(message = "Username is required")
     private String benutzername;
+    
+    @NotBlank(message = "Password is required")
     private String password;
+
+    // Default constructor required for JSON deserialization
+    public AuthRequest() {
+    }
 
     public AuthRequest(String benutzername, String password) {
         this.benutzername = benutzername;

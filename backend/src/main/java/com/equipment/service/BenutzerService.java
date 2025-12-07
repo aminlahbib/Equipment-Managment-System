@@ -49,6 +49,7 @@ public class BenutzerService {
         benutzer.setNachname(request.getNachname());
         benutzer.setPasswordHash(hashedPassword); // Store the hashed password
         benutzer.setPasswordSalt(salt); // Store the salt
+        benutzer.setRole(com.equipment.model.Role.USER); // Default role for new users
 
         benutzerRepository.save(benutzer);
 
@@ -71,7 +72,6 @@ public class BenutzerService {
         // Compare the provided password with the stored password hash and salt
         if (!comparePasswords(request.getPassword(), benutzer.getPasswordSalt(), benutzer.getPasswordHash())) {
             log.debug("Incorrect password for user: {}", request.getBenutzername());
-            log.debug("Stored password hash: {}", new String(benutzer.getPasswordHash()));
             throw new BadCredentialsException("Invalid Password");
         }
 

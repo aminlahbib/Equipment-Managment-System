@@ -24,13 +24,18 @@ public class Benutzer {
     @Column(name = "password_salt", nullable = false)
     private byte[] passwordSalt;
 
-    public Benutzer(Integer id, String benutzername, String vorname, String nachname, byte[] passwordHash, byte[] passwordSalt) {
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role = Role.USER;
+
+    public Benutzer(Integer id, String benutzername, String vorname, String nachname, byte[] passwordHash, byte[] passwordSalt, Role role) {
         this.id = id;
         this.benutzername = benutzername;
         this.vorname = vorname;
         this.nachname = nachname;
         this.passwordHash = passwordHash;
         this.passwordSalt = passwordSalt;
+        this.role = role != null ? role : Role.USER;
     }
 
     public Benutzer() {
@@ -83,5 +88,13 @@ public class Benutzer {
 
     public void setPasswordSalt(byte[] passwordSalt) {
         this.passwordSalt = passwordSalt;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role != null ? role : Role.USER;
     }
 }

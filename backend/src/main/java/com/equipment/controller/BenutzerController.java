@@ -3,7 +3,7 @@ package com.equipment.controller;
 import com.equipment.dto.*;
 import com.equipment.service.BenutzerService;
 import com.equipment.service.AusleiheService;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +25,7 @@ public class BenutzerController {
 
     //error handling
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
         try {
             AuthResponse response = benutzerService.register(request);
             return ResponseEntity.ok(response);
@@ -36,7 +36,7 @@ public class BenutzerController {
     }
 
     @PutMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         try {
             AuthReset response = benutzerService.resetPassword(request);
             return ResponseEntity.ok(response);
@@ -48,7 +48,7 @@ public class BenutzerController {
 
     //error handling
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
         return ResponseEntity.ok(benutzerService.login(request));
     }
 

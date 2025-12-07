@@ -52,10 +52,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             var benutzer = benutzerRepository.findByBenutzername(benutzername).orElse(null);
 
             if (benutzer != null) {
+                var benutzerDetails = new com.equipment.security.BenutzerDetails(benutzer);
                 var authToken = new UsernamePasswordAuthenticationToken(
                         benutzer,
                         null,
-                        java.util.Collections.emptyList()
+                        benutzerDetails.getAuthorities()
                 );
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
