@@ -124,7 +124,7 @@ window.handleAddEquipment = async () => {
 window.handleDeleteEquipment = async (id) => {
     if (!confirm("Are you sure you want to delete this equipment?")) return;
     
-    try {
+                    try {
         await deleteEquipment(id);
         await loadEquipment();
         await updateStats();

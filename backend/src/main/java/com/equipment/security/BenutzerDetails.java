@@ -19,7 +19,7 @@ public class BenutzerDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         if (benutzer.getRole() == null) {
-            return Collections.emptyList();
+        return Collections.emptyList();
         }
         return List.of(new SimpleGrantedAuthority("ROLE_" + benutzer.getRole().name()));
     }
