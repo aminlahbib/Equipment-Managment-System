@@ -7,6 +7,7 @@ import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
+import { Dashboard } from './pages/Dashboard';
 
 function AppContent() {
   const [page, setPage] = useState('landing');
@@ -63,12 +64,7 @@ function AppContent() {
     <div className="min-h-screen bg-background text-text-primary font-sans antialiased selection:bg-primary/20 selection:text-text-primary transition-colors duration-300">
       <Navbar currentPage={page} onNavigate={(p) => setPage(p)} />
       <main className="pt-20">
-        {page === 'dashboard' && (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-text-secondary mt-2">Dashboard content coming soon...</p>
-          </div>
-        )}
+        {page === 'dashboard' && <Dashboard />}
         {page === 'equipment' && (
           <div className="p-6">
             <h1 className="text-3xl font-bold">Inventory</h1>
