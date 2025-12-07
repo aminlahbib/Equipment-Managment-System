@@ -1,26 +1,31 @@
-<div class="page-container">
-  <h1>Equipment Dashboard</h1>
-  <!-- Placeholder for user info (username and token) -->
-  <div id="user-info" class="user-info"></div>
-  <div class="table-container">
-    <h2>Available Equipment</h2>
-    <table id="available-equipment-table" class="table table-bordered table-hover mt-4">
-      <thead>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Action</th>
-      </thead>
-      <tbody></tbody>
-    </table>
+<div class="page-container fade-in">
+    <header class="flex-between mb-xl" style="margin-top: var(--header-height); padding-top: var(--spacing-lg);">
+        <div>
+            <h1 class="mb-xs">Dashboard</h1>
+            <div id="user-info" class="text-secondary">Welcome back</div>
+        </div>
+    </header>
 
-    <h2>My Borrowed Equipment</h2>
-    <table id="borrowed-equipment-table" class="table table-bordered table-hover mt-4">
-      <thead>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Action</th>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+    <section class="mb-2xl">
+        <h2 class="mb-lg">Available Equipment</h2>
+        <!-- Grid layout for equipment cards -->
+        <div id="available-equipment-grid" class="equipment-grid">
+            <!-- Dynamic Content -->
+        </div>
+    </section>
+
+    <section>
+        <h2 class="mb-lg">Your Loans</h2>
+        <!-- Grid layout for borrowed equipment -->
+        <div id="borrowed-equipment-grid" class="equipment-grid">
+            <!-- Dynamic Content -->
+        </div>
+    </section>
 </div>
+
+<!-- Helper script to convert existing table logic to grid -->
+<script type="module">
+    // We need to wait for the main script to load data, then we can intercept/transform it
+    // Or better, update the main script to render cards instead of tables.
+    // For now, we will update equipments-dashboard.js to render cards.
+</script>
