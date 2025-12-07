@@ -1,8 +1,33 @@
 <div class="page-container fade-in">
-    <header class="flex-between mb-xl" style="margin-top: var(--header-height); padding-top: var(--spacing-lg);">
-        <div>
-            <h1 class="mb-xs">Dashboard</h1>
-            <div id="user-info" class="text-secondary">Welcome back</div>
+    <header class="dashboard-header mb-xl" style="margin-top: var(--header-height); padding-top: var(--spacing-lg);">
+        <div class="header-content">
+            <div class="welcome-section">
+                <h1 class="mb-xs">Dashboard</h1>
+                <div id="user-info" class="text-secondary">Welcome back</div>
+            </div>
+            <div class="user-profile-card">
+                <div class="user-avatar">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div class="user-details">
+                    <div id="user-full-name" class="user-name">Loading...</div>
+                    <div class="user-role">Member</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-item">
+                <div class="stat-number" id="available-count">0</div>
+                <div class="stat-label">Available</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="borrowed-count">0</div>
+                <div class="stat-label">Borrowed</div>
+            </div>
         </div>
     </header>
 

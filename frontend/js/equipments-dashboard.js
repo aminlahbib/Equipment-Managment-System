@@ -19,42 +19,87 @@ function displayUserInfo() {
     if (token) {
         const decoded = decodeToken(token);
         const userInfoEl = document.getElementById("user-info");
+        const userNameEl = document.getElementById("user-full-name");
+
         if (userInfoEl) {
-            userInfoEl.textContent = `Logged in as ${decoded.sub}`;
+            userInfoEl.textContent = `Welcome back, ${decoded.benutzername || decoded.sub}!`;
+        }
+        if (userNameEl) {
+            userNameEl.textContent = decoded.benutzername || decoded.sub;
         }
     }
 }
 
+function updateStats() {
+    const availableCountEl = document.getElementById("available-count");
+    const borrowedCountEl = document.getElementById("borrowed-count");
+
+    if (availableCountEl) {
+        availableCountEl.textContent = availableEquipment.length;
+    }
+    if (borrowedCountEl) {
+        borrowedCountEl.textContent = borrowedEquipment.length;
+    }
+}
+
 async function refreshData() {
+    console.log("refreshData: Starting to fetch data...");
     try {
-        const [available, borrowed] = await Promise.all([
-            getAvailableEquipment(),
-            getMyBorrowedEquipment()
-        ]);
-        
+        console.log("refreshData: Calling getAvailableEquipment...");
+        const available = await getAvailableEquipment();
+        console.log("refreshData: Available equipment received:", available);
+
+        console.log("refreshData: Calling getMyBorrowedEquipment...");
+        const borrowed = await getMyBorrowedEquipment();
+        console.log("refreshData: Borrowed equipment received:", borrowed);
+
         availableEquipment = available;
         borrowedEquipment = borrowed;
-        
+
+        console.log("refreshData: Updating stats and rendering...");
+        updateStats();
         renderAvailableGrid();
         renderBorrowedGrid();
+        console.log("refreshData: Data loading complete");
     } catch (error) {
         console.error("Failed to load data", error);
+        // Show error in UI
+        document.getElementById("available-equipment-grid").innerHTML = `
+            <div class="text-center py-xl" style="grid-column: 1/-1;">
+                <p>Failed to load equipment data. Please try again.</p>
+                <p class="text-secondary">${error.message}</p>
+            </div>
+        `;
+        document.getElementById("borrowed-equipment-grid").innerHTML = `
+            <div class="text-center py-xl" style="grid-column: 1/-1;">
+                <p>Failed to load loan data. Please try again.</p>
+                <p class="text-secondary">${error.message}</p>
+            </div>
+        `;
     }
 }
 
 function renderAvailableGrid() {
     const grid = document.getElementById("available-equipment-grid");
     if (!grid) return;
-    
+
     if (availableEquipment.length === 0) {
         grid.innerHTML = `
-            <div class="text-center py-xl" style="grid-column: 1/-1;">
-                <p>No equipment currently available.</p>
+            <div class="card empty-state-card" style="grid-column: 1/-1;">
+                <div class="empty-state-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <rect x="2" y="4" width="20" height="16" rx="3"/>
+                        <circle cx="12" cy="14" r="2"/>
+                        <path d="M7 8h10"/>
+                    </svg>
+                </div>
+                <h3>No Equipment Available</h3>
+                <p>All equipment is currently borrowed. Check back later or contact your administrator.</p>
             </div>
         `;
         return;
     }
-    
+
     grid.innerHTML = availableEquipment.map(item => `
         <div class="card card-hover equipment-card slide-up">
             <div class="equipment-image-placeholder">
@@ -79,16 +124,22 @@ function renderAvailableGrid() {
 function renderBorrowedGrid() {
     const grid = document.getElementById("borrowed-equipment-grid");
     if (!grid) return;
-    
+
     if (borrowedEquipment.length === 0) {
         grid.innerHTML = `
-            <div class="text-center py-xl" style="grid-column: 1/-1;">
-                <p class="text-secondary">You haven't borrowed any equipment yet.</p>
+            <div class="card empty-state-card" style="grid-column: 1/-1;">
+                <div class="empty-state-icon">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                        <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                    </svg>
+                </div>
+                <h3>No Active Loans</h3>
+                <p>You haven't borrowed any equipment yet. Browse available equipment above and borrow what you need.</p>
             </div>
         `;
         return;
     }
-    
+
     grid.innerHTML = borrowedEquipment.map(item => `
         <div class="card card-hover equipment-card slide-up">
             <div class="equipment-image-placeholder" style="background-color: rgba(255, 159, 10, 0.1); color: var(--warning-color);">
