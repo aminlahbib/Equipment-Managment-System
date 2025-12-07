@@ -9,6 +9,7 @@ import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
 import { Activity } from './pages/Activity';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
 
 function AppContent() {
   const [page, setPage] = useState('landing');
@@ -73,7 +74,8 @@ function AppContent() {
           </div>
         )}
         {page === 'loans' && <Activity />}
-        {!['dashboard', 'equipment', 'loans'].includes(page) && (
+        {page === 'admin' && <AdminDashboard />}
+        {!['dashboard', 'equipment', 'loans', 'admin'].includes(page) && (
           <div className="p-6">
             <h1 className="text-3xl font-bold">Page Not Found</h1>
             <p className="text-text-secondary mt-2">The page you're looking for doesn't exist.</p>
