@@ -3,19 +3,29 @@ package com.equipment.service;
 import com.equipment.dto.*;
 import com.equipment.exception.EquipmentException;
 import com.equipment.model.Benutzer;
+import com.equipment.model.AccountStatus;
+import com.equipment.model.Role;
 import com.equipment.repository.BenutzerRepository;
+import com.equipment.repository.specification.BenutzerSpecifications;
 import com.equipment.security.JwtService;
 import com.warrenstrange.googleauth.GoogleAuthenticator;
 import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import com.warrenstrange.googleauth.GoogleAuthenticatorQRGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Arrays;
 import java.util.List;
@@ -99,6 +109,10 @@ public class BenutzerService {
         }
 
         log.debug("Login successful for user: {}", request.getBenutzername());
+        // Update last login timestamp
+        benutzer.setLastLogin(LocalDateTime.now());
+        benutzerRepository.save(benutzer);
+        
         String token = jwtService.generateToken(benutzer);
         return new AuthResponse(token);
     }
@@ -229,5 +243,59 @@ public class BenutzerService {
         benutzerRepository.save(benutzer);
 
         return new AuthReset("Password reset successfully.");
+    }
+
+    @Transactional
+    public Benutzer updateUserProfile(Benutzer currentUser, UpdateUserRequest request) {
+        if (request.getVorname() != null && !request.getVorname().trim().isEmpty()) {
+            currentUser.setVorname(request.getVorname());
+        }
+        if (request.getNachname() != null && !request.getNachname().trim().isEmpty()) {
+            currentUser.setNachname(request.getNachname());
+        }
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            // Check if email is already taken by another user
+            Optional<Benutzer> existingUser = benutzerRepository.findByEmail(request.getEmail());
+            if (existingUser.isPresent() && !existingUser.get().getId().equals(currentUser.getId())) {
+                throw EquipmentException.badRequest("Email is already taken");
+            }
+            currentUser.setEmail(request.getEmail());
+        }
+        return benutzerRepository.save(currentUser);
+    }
+
+    public Benutzer getCurrentUserProfile(Benutzer currentUser) {
+        return benutzerRepository.findById(currentUser.getId())
+                .orElseThrow(() -> EquipmentException.notFound("User not found"));
+    }
+
+    public Page<Benutzer> searchUsers(UserSearchRequest request) {
+        Specification<Benutzer> spec = Specification.where(null);
+
+        if (request.getSearchTerm() != null) {
+            spec = spec.and(BenutzerSpecifications.hasSearchTerm(request.getSearchTerm()));
+        }
+        if (request.getRole() != null) {
+            spec = spec.and(BenutzerSpecifications.hasRole(request.getRole()));
+        }
+        if (request.getAccountStatus() != null) {
+            spec = spec.and(BenutzerSpecifications.hasAccountStatus(request.getAccountStatus()));
+        }
+
+        Sort sort = Sort.by(
+            request.getSortDirection().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC,
+            request.getSortBy()
+        );
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        return benutzerRepository.findAll(spec, pageable);
+    }
+
+    @Transactional
+    public Benutzer updateLastLogin(String benutzername) {
+        Benutzer benutzer = benutzerRepository.findByBenutzername(benutzername)
+                .orElseThrow(() -> EquipmentException.notFound("User not found"));
+        benutzer.setLastLogin(LocalDateTime.now());
+        return benutzerRepository.save(benutzer);
     }
 }
