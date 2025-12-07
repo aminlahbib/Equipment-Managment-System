@@ -1,9 +1,22 @@
-import { getAvailableEquipment, getMyBorrowedEquipment, borrowEquipment, returnEquipment } from './api.js';
+import { searchEquipment, getMyBorrowedEquipment, borrowEquipment, returnEquipment } from './api.js';
 import { decodeToken } from './utilities.js';
+import notifications from './notifications.js';
 
 // Global state
 let availableEquipment = [];
 let borrowedEquipment = [];
+let currentPage = 0;
+let totalPages = 0;
+let totalElements = 0;
+let searchParams = {
+    searchTerm: '',
+    category: '',
+    status: 'AVAILABLE', // Only show available equipment to users
+    page: 0,
+    size: 12,
+    sortBy: 'bezeichnung',
+    sortDirection: 'ASC'
+};
 
 // Initialize immediately since DOM is already loaded by router
 initDashboard();
@@ -11,6 +24,7 @@ initDashboard();
 // Also expose init function for router to call
 window.initDashboard = async () => {
     displayUserInfo();
+    setupEventListeners();
     await refreshData();
 };
 
@@ -30,53 +44,130 @@ function displayUserInfo() {
     }
 }
 
+function setupEventListeners() {
+    // Search input with debounce
+    const searchInput = document.getElementById('equipment-search');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchParams.searchTerm = e.target.value;
+                searchParams.page = 0; // Reset to first page
+                loadAvailableEquipment();
+            }, 300);
+        });
+    }
+
+    // Category filter
+    const categoryFilter = document.getElementById('equipment-category-filter');
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', (e) => {
+            searchParams.category = e.target.value;
+            searchParams.page = 0;
+            loadAvailableEquipment();
+        });
+    }
+
+    // Status filter (should always be AVAILABLE for users, but keeping for consistency)
+    const statusFilter = document.getElementById('equipment-status-filter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', (e) => {
+            searchParams.status = e.target.value || 'AVAILABLE';
+            searchParams.page = 0;
+            loadAvailableEquipment();
+        });
+    }
+
+    // Clear filters button
+    const clearFilters = document.getElementById('clear-filters');
+    if (clearFilters) {
+        clearFilters.addEventListener('click', () => {
+            searchParams.searchTerm = '';
+            searchParams.category = '';
+            searchParams.status = 'AVAILABLE';
+            searchParams.page = 0;
+            
+            if (searchInput) searchInput.value = '';
+            if (categoryFilter) categoryFilter.value = '';
+            if (statusFilter) statusFilter.value = '';
+            
+            loadAvailableEquipment();
+        });
+    }
+}
+
 function updateStats() {
     const availableCountEl = document.getElementById("available-count");
     const borrowedCountEl = document.getElementById("borrowed-count");
 
     if (availableCountEl) {
-        availableCountEl.textContent = availableEquipment.length;
+        availableCountEl.textContent = totalElements || availableEquipment.length;
     }
     if (borrowedCountEl) {
         borrowedCountEl.textContent = borrowedEquipment.length;
     }
 }
 
-async function refreshData() {
-    console.log("refreshData: Starting to fetch data...");
+async function loadAvailableEquipment() {
+    const loadingEl = document.getElementById('equipment-loading');
+    const grid = document.getElementById("available-equipment-grid");
+    
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (grid) grid.style.display = 'none';
+
     try {
-        console.log("refreshData: Calling getAvailableEquipment...");
-        const available = await getAvailableEquipment();
-        console.log("refreshData: Available equipment received:", available);
+        const response = await searchEquipment(searchParams);
+        availableEquipment = response.content || response || [];
+        currentPage = response.number !== undefined ? response.number : 0;
+        totalPages = response.totalPages !== undefined ? response.totalPages : 1;
+        totalElements = response.totalElements !== undefined ? response.totalElements : availableEquipment.length;
 
-        console.log("refreshData: Calling getMyBorrowedEquipment...");
-        const borrowed = await getMyBorrowedEquipment();
-        console.log("refreshData: Borrowed equipment received:", borrowed);
-
-        availableEquipment = available;
-        borrowedEquipment = borrowed;
-
-        console.log("refreshData: Updating stats and rendering...");
         updateStats();
         renderAvailableGrid();
-        renderBorrowedGrid();
-        console.log("refreshData: Data loading complete");
+        renderPagination();
     } catch (error) {
-        console.error("Failed to load data", error);
-        // Show error in UI
-        document.getElementById("available-equipment-grid").innerHTML = `
-            <div class="text-center py-xl" style="grid-column: 1/-1;">
-                <p>Failed to load equipment data. Please try again.</p>
-                <p class="text-secondary">${error.message}</p>
-            </div>
-        `;
-        document.getElementById("borrowed-equipment-grid").innerHTML = `
-            <div class="text-center py-xl" style="grid-column: 1/-1;">
-                <p>Failed to load loan data. Please try again.</p>
-                <p class="text-secondary">${error.message}</p>
-            </div>
-        `;
+        console.error("Failed to load equipment", error);
+        notifications.error("Failed to load equipment: " + error.message);
+        if (grid) {
+            grid.innerHTML = `
+                <div class="text-center py-xl" style="grid-column: 1/-1;">
+                    <p>Failed to load equipment data. Please try again.</p>
+                    <p class="text-secondary">${error.message}</p>
+                </div>
+            `;
+        }
+    } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (grid) grid.style.display = 'grid';
     }
+}
+
+async function loadBorrowedEquipment() {
+    try {
+        borrowedEquipment = await getMyBorrowedEquipment();
+        renderBorrowedGrid();
+        updateStats();
+    } catch (error) {
+        console.error("Failed to load borrowed equipment", error);
+        notifications.error("Failed to load loan data: " + error.message);
+        const grid = document.getElementById("borrowed-equipment-grid");
+        if (grid) {
+            grid.innerHTML = `
+                <div class="text-center py-xl" style="grid-column: 1/-1;">
+                    <p>Failed to load loan data. Please try again.</p>
+                    <p class="text-secondary">${error.message}</p>
+                </div>
+            `;
+        }
+    }
+}
+
+async function refreshData() {
+    await Promise.all([
+        loadAvailableEquipment(),
+        loadBorrowedEquipment()
+    ]);
 }
 
 function renderAvailableGrid() {
@@ -93,8 +184,8 @@ function renderAvailableGrid() {
                         <path d="M7 8h10"/>
                     </svg>
                 </div>
-                <h3>No Equipment Available</h3>
-                <p>All equipment is currently borrowed. Check back later or contact your administrator.</p>
+                <h3>No Equipment Found</h3>
+                <p>${searchParams.searchTerm || searchParams.category ? 'Try adjusting your search or filters.' : 'All equipment is currently borrowed. Check back later or contact your administrator.'}</p>
             </div>
         `;
         return;
@@ -110,8 +201,9 @@ function renderAvailableGrid() {
                 </svg>
             </div>
             <div class="equipment-details">
-                <h3 style="font-size: 18px; margin-bottom: 4px;">${item.bezeichnung}</h3>
-                <p class="text-secondary" style="font-size: 14px; margin-bottom: 8px;">ID: ${item.inventarnummer}</p>
+                <h3 style="font-size: 18px; margin-bottom: 4px;">${item.bezeichnung || 'Unnamed Equipment'}</h3>
+                <p class="text-secondary" style="font-size: 14px; margin-bottom: 8px;">ID: ${item.inventarnummer || 'N/A'}</p>
+                ${item.category ? `<p class="text-secondary" style="font-size: 12px; margin-bottom: 4px;">${item.category}</p>` : ''}
                 <span class="badge badge-success">Available</span>
             </div>
             <div class="equipment-actions">
@@ -149,8 +241,8 @@ function renderBorrowedGrid() {
                 </svg>
             </div>
             <div class="equipment-details">
-                <h3 style="font-size: 18px; margin-bottom: 4px;">${item.equipment.bezeichnung}</h3>
-                <p class="text-secondary" style="font-size: 14px; margin-bottom: 8px;">ID: ${item.equipment.inventarnummer}</p>
+                <h3 style="font-size: 18px; margin-bottom: 4px;">${item.equipment?.bezeichnung || 'Unknown Equipment'}</h3>
+                <p class="text-secondary" style="font-size: 14px; margin-bottom: 8px;">ID: ${item.equipment?.inventarnummer || 'N/A'}</p>
                 <span class="badge badge-warning">Borrowed</span>
                 <p class="text-secondary mt-sm" style="font-size: 12px;">Borrowed on: ${new Date(item.ausleihe).toLocaleDateString()}</p>
             </div>
@@ -161,21 +253,63 @@ function renderBorrowedGrid() {
     `).join("");
 }
 
+function renderPagination() {
+    const paginationEl = document.getElementById('equipment-pagination');
+    if (!paginationEl || totalPages <= 1) {
+        if (paginationEl) paginationEl.style.display = 'none';
+        return;
+    }
+
+    paginationEl.style.display = 'flex';
+    paginationEl.innerHTML = `
+        <div class="pagination">
+            <button 
+                class="btn btn-ghost btn-small" 
+                ${currentPage === 0 ? 'disabled' : ''} 
+                onclick="goToPage(${currentPage - 1})"
+            >
+                Previous
+            </button>
+            <span class="pagination-info">
+                Page ${currentPage + 1} of ${totalPages} (${totalElements} items)
+            </span>
+            <button 
+                class="btn btn-ghost btn-small" 
+                ${currentPage >= totalPages - 1 ? 'disabled' : ''} 
+                onclick="goToPage(${currentPage + 1})"
+            >
+                Next
+            </button>
+        </div>
+    `;
+}
+
+window.goToPage = (page) => {
+    if (page >= 0 && page < totalPages) {
+        searchParams.page = page;
+        loadAvailableEquipment();
+        // Scroll to top of equipment section
+        document.getElementById('available-equipment-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+};
+
 // Expose handlers to window
 window.handleBorrow = async (id) => {
     try {
         await borrowEquipment(id);
+        notifications.success("Equipment borrowed successfully!");
         await refreshData();
     } catch (error) {
-        alert("Failed to borrow equipment: " + error.message);
+        notifications.error("Failed to borrow equipment: " + error.message);
     }
 };
 
 window.handleReturn = async (id) => {
     try {
         await returnEquipment(id);
+        notifications.success("Equipment returned successfully!");
         await refreshData();
     } catch (error) {
-        alert("Failed to return equipment: " + error.message);
+        notifications.error("Failed to return equipment: " + error.message);
     }
 };
