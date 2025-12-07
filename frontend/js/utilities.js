@@ -1,9 +1,9 @@
 export function showNavbar() {
-    document.getElementById("navbar").classList.remove("hide");
+    document.getElementById("navbar").classList.remove("hidden");
 }
 
 export function hideNavbar() {
-    document.getElementById("navbar").classList.add("hide");
+    document.getElementById("navbar").classList.add("hidden");
 }
 
 
