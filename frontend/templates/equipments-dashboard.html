@@ -1,26 +1,121 @@
-<div class="page-container">
-  <h1>Equipment Dashboard</h1>
-  <!-- Placeholder for user info (username and token) -->
-  <div id="user-info" class="user-info"></div>
-  <div class="table-container">
-    <h2>Available Equipment</h2>
-    <table id="available-equipment-table" class="table table-bordered table-hover mt-4">
-      <thead>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Action</th>
-      </thead>
-      <tbody></tbody>
-    </table>
+<div class="page-container fade-in">
+    <header class="dashboard-header mb-xl" style="margin-top: var(--header-height); padding-top: var(--spacing-lg);">
+        <div class="header-content">
+            <div class="welcome-section">
+                <h1 class="mb-xs">Dashboard</h1>
+                <div id="user-info" class="text-secondary">Welcome back</div>
+            </div>
+            <div class="user-profile-card">
+                <div class="user-avatar">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div class="user-details">
+                    <div id="user-full-name" class="user-name">Loading...</div>
+                    <div class="user-role">Member</div>
+                </div>
+            </div>
+        </div>
 
-    <h2>My Borrowed Equipment</h2>
-    <table id="borrowed-equipment-table" class="table table-bordered table-hover mt-4">
-      <thead>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Action</th>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+        <div class="stats-overview">
+            <div class="stat-item">
+                <div class="stat-number" id="available-count">0</div>
+                <div class="stat-label">Available</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="borrowed-count">0</div>
+                <div class="stat-label">Borrowed</div>
+            </div>
+        </div>
+    </header>
+
+    <section class="mb-2xl">
+        <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+            <h2>Available Equipment</h2>
+            <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                <button id="export-equipment-csv" class="btn btn-ghost btn-small" title="Export to CSV">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export CSV
+                </button>
+                <div class="search-filter-bar" style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                <div class="search-box" style="position: relative; flex: 1; min-width: 200px;">
+                    <input 
+                        type="text" 
+                        id="equipment-search" 
+                        class="form-input" 
+                        placeholder="Search equipment..." 
+                        style="padding-left: 40px;"
+                    >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" 
+                         style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-tertiary); pointer-events: none;">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </div>
+                <select id="equipment-category-filter" class="form-input" style="min-width: 150px;">
+                    <option value="">All Categories</option>
+                    <option value="LAPTOP">Laptop</option>
+                    <option value="PROJECTOR">Projector</option>
+                    <option value="CAMERA">Camera</option>
+                    <option value="AUDIO">Audio</option>
+                    <option value="OTHER">Other</option>
+                </select>
+                <select id="equipment-status-filter" class="form-input" style="min-width: 120px;">
+                    <option value="">All Status</option>
+                    <option value="AVAILABLE">Available</option>
+                    <option value="BORROWED">Borrowed</option>
+                    <option value="MAINTENANCE">Maintenance</option>
+                </select>
+                <select id="equipment-sort" class="form-input" style="min-width: 140px;">
+                    <option value="bezeichnung:ASC">Name (A-Z)</option>
+                    <option value="bezeichnung:DESC">Name (Z-A)</option>
+                    <option value="id:DESC">Newest First</option>
+                    <option value="id:ASC">Oldest First</option>
+                </select>
+                <button id="clear-filters" class="btn btn-ghost btn-small">Clear</button>
+                </div>
+            </div>
+        </div>
+        <div id="equipment-loading" class="text-center py-xl" style="display: none;">
+            <div class="spinner" style="margin: 0 auto;"></div>
+            <p class="text-secondary mt-md">Loading equipment...</p>
+        </div>
+        <div id="available-equipment-grid" class="equipment-grid">
+            <!-- Dynamic Content -->
+        </div>
+        <div id="equipment-pagination" class="pagination-container" style="display: none; margin-top: var(--spacing-xl);">
+            <!-- Pagination controls -->
+        </div>
+    </section>
+
+    <section>
+        <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+            <h2>Your Loans</h2>
+            <button id="export-loans-csv" class="btn btn-ghost btn-small" title="Export to CSV">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export CSV
+            </button>
+        </div>
+        <!-- Grid layout for borrowed equipment -->
+        <div id="borrowed-equipment-grid" class="equipment-grid">
+            <!-- Dynamic Content -->
+        </div>
+    </section>
 </div>
+
+<!-- Helper script to convert existing table logic to grid -->
+<script type="module">
+    // We need to wait for the main script to load data, then we can intercept/transform it
+    // Or better, update the main script to render cards instead of tables.
+    // For now, we will update equipments-dashboard.js to render cards.
+</script>

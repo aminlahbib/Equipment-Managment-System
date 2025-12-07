@@ -1,104 +1,213 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
-  <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="../css/styles.css">
-</head>
-<body>
+<div class="dashboard-layout fade-in">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="mb-xl">
+            <h2 style="font-size: 20px; margin-bottom: 4px;">Admin</h2>
+            <p class="text-secondary" style="font-size: 14px;">Management Console</p>
+        </div>
+        
+        <nav>
+            <ul class="nav-links" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                <li style="width: 100%;">
+                    <a href="#" class="btn btn-ghost" style="width: 100%; justify-content: flex-start; padding-left: 0;" onclick="showSection('overview')">Overview</a>
+                </li>
+                <li style="width: 100%;">
+                    <a href="#" class="btn btn-ghost" style="width: 100%; justify-content: flex-start; padding-left: 0;" onclick="showSection('equipment')">Equipment</a>
+                </li>
+                <li style="width: 100%;">
+                    <a href="#" class="btn btn-ghost" style="width: 100%; justify-content: flex-start; padding-left: 0;" onclick="showSection('users')">Users</a>
+                </li>
+                <li style="width: 100%;">
+                    <a href="#" class="btn btn-ghost" style="width: 100%; justify-content: flex-start; padding-left: 0;" onclick="showSection('loans')">Loans</a>
+                </li>
+            </ul>
+        </nav>
+        
+        <div class="mt-xl pt-lg" style="border-top: 1px solid var(--border-light);">
+            <a href="/" class="btn btn-secondary btn-small" style="width: 100%;">Back to App</a>
+        </div>
+    </aside>
 
-<div class="container">
-  <h1>Admin Dashboard</h1>
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="flex-between mb-xl">
+            <h1>Dashboard Overview</h1>
+            <button onclick="openAddEquipmentModal()" class="btn btn-primary">
+                <span style="margin-right: 8px;">+</span> Add Equipment
+            </button>
+        </div>
 
-  <!-- Add Equipment Form -->
-  <div class="section">
-    <h2>Add Equipment</h2>
-    <form id="addEquipmentForm">
-      <label for="inventarnummer">Inventory Number:</label>
-      <input type="text" id="inventarnummer" name="inventarnummer" required>
-
-      <label for="bezeichnung">Description:</label>
-      <input type="text" id="bezeichnung" name="bezeichnung" required>
-
-      <button type="submit">Add Equipment</button>
-    </form>
-    <p id="addEquipmentMessage"></p>
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <div class="card stat-card">
+                <div class="stat-label">Total Equipment</div>
+                <div class="stat-value" id="total-equipment-count">--</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Active Loans</div>
+                <div class="stat-value" id="active-loans-count">--</div>
+            </div>
+            <div class="card stat-card">
+                <div class="stat-label">Users</div>
+                <div class="stat-value" id="total-users-count">--</div>
+            </div>
   </div>
 
-  <!-- Available Equipment -->
-  <div class="section">
-    <h2>Available Equipment</h2>
-    <table id="availableEquipmentTable">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>Inventory Number</th>
-        <th>Description</th>
-        <th>Action</th>
-      </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+        <!-- Equipment Section -->
+        <div class="section" id="equipment-section">
+            <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2>Inventory</h2>
+                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                    <button id="export-equipment-admin-csv" class="btn btn-ghost btn-small">Export CSV</button>
+                    <div class="search-filter-bar" style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="admin-equipment-search" class="form-input" placeholder="Search..." style="min-width: 200px;">
+                        <select id="admin-equipment-category" class="form-input" style="min-width: 120px;">
+                            <option value="">All Categories</option>
+                            <option value="LAPTOP">Laptop</option>
+                            <option value="PROJECTOR">Projector</option>
+                            <option value="CAMERA">Camera</option>
+                            <option value="AUDIO">Audio</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                        <select id="admin-equipment-status" class="form-input" style="min-width: 120px;">
+                            <option value="">All Status</option>
+                            <option value="AVAILABLE">Available</option>
+                            <option value="BORROWED">Borrowed</option>
+                            <option value="MAINTENANCE">Maintenance</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="equipment-loading-admin" class="text-center py-xl" style="display: none;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+            </div>
+            <div class="table-container">
+                <table class="table" id="availableEquipmentTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Inventory #</th>
+                            <th>Description</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="equipment-pagination-admin" class="pagination-container" style="display: none; margin-top: var(--spacing-lg);"></div>
+        </div>
+
+        <!-- Users Section (Hidden by default) -->
+        <div class="section hidden" id="users-section">
+            <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2>Users</h2>
+                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                    <button id="export-users-csv" class="btn btn-ghost btn-small">Export CSV</button>
+                    <div class="search-filter-bar" style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="admin-users-search" class="form-input" placeholder="Search..." style="min-width: 200px;">
+                        <select id="admin-users-role" class="form-input" style="min-width: 120px;">
+                            <option value="">All Roles</option>
+                            <option value="USER">User</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                        <select id="admin-users-status" class="form-input" style="min-width: 120px;">
+                            <option value="">All Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                            <option value="SUSPENDED">Suspended</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="users-loading-admin" class="text-center py-xl" style="display: none;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+            </div>
+            <div class="table-container">
+                <table class="table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="users-pagination-admin" class="pagination-container" style="display: none; margin-top: var(--spacing-lg);"></div>
+        </div>
+
+        <!-- Loans Section (Hidden by default) -->
+        <div class="section hidden" id="loans-section">
+            <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2>Current Loans</h2>
+                <button id="export-loans-admin-csv" class="btn btn-ghost btn-small">Export CSV</button>
+            </div>
+            <div id="loans-loading-admin" class="text-center py-xl" style="display: none;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+            </div>
+            <div class="table-container">
+                <table class="table" id="currentLoansTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Equipment</th>
+                            <th>Borrowed Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div id="loans-pagination-admin" class="pagination-container" style="display: none; margin-top: var(--spacing-lg);"></div>
+        </div>
+    </main>
   </div>
 
-  <!-- Current Loans -->
-  <div class="section">
-    <h2>Current Loans</h2>
-    <table id="currentLoansTable">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>User</th>
-        <th>Equipment</th>
-        <th>Borrowed On</th>
-      </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Loan History -->
-  <div class="section">
-    <h2>Loan History</h2>
-    <table id="loanHistoryTable">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>User</th>
-        <th>Equipment</th>
-        <th>Borrowed On</th>
-        <th>Returned On</th>
-      </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- All Users -->
-  <div class="section">
-    <h2>Users</h2>
-    <table id="usersTable">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>Username</th>
-        <th>Last Name</th>
-        <th>Action</th>
-      </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>
+<!-- Add Equipment Modal -->
+<div id="add-equipment-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add New Equipment</h3>
+            <button onclick="closeAddEquipmentModal()" class="close-btn">&times;</button>
+        </div>
+        <form id="addEquipmentForm" onsubmit="event.preventDefault(); handleAddEquipment();">
+            <div class="form-group">
+                <label class="form-label" for="inventarnummer">Inventory Number</label>
+                <input class="form-input" type="text" id="inventarnummer" name="inventarnummer" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="bezeichnung">Description</label>
+                <input class="form-input" type="text" id="bezeichnung" name="bezeichnung" required>
+            </div>
+            <div class="flex-between mt-lg">
+                <button type="button" onclick="closeAddEquipmentModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Item</button>
+            </div>
+        </form>
   </div>
 </div>
 
-<script src="../js/api.js" type="module"></script>
-<script src="../js/admin-scripts.js" type="module"></script>
-</body>
-</html>
+<script type="module" src="./js/admin-scripts.js"></script>
+<script>
+    // Simple tab switching logic
+    window.showSection = (sectionName) => {
+        // Hide all sections if we had more separate divs
+        // For now, just scroll to or highlight
+        console.log("Switching to", sectionName);
+    };
+    
+    window.openAddEquipmentModal = () => {
+        document.getElementById('add-equipment-modal').classList.add('show');
+    };
+    
+    window.closeAddEquipmentModal = () => {
+        document.getElementById('add-equipment-modal').classList.remove('show');
+    };
+</script>
