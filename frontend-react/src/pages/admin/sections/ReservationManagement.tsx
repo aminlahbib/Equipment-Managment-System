@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Search } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 import { Button } from '../../../components/ui/Button';
 import { SearchBar } from '../../../components/features/SearchBar';
 import { Select } from '../../../components/ui/Select';

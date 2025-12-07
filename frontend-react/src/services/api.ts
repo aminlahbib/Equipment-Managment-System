@@ -1,4 +1,4 @@
-import { API_BASE_URL, getApiBaseUrl } from '../utils/constants';
+import { getApiBaseUrl } from '../utils/constants';
 import { getToken, removeToken, isTokenExpired } from '../utils/token';
 import type {
   Equipment,
@@ -10,7 +10,7 @@ import type {
   PaginatedResponse,
   ApiResponse,
 } from '../types';
-import type { EquipmentStatus, Role, AccountStatus, ReservationStatus, MaintenanceType, MaintenanceStatus } from '../types';
+import type { Role, AccountStatus, MaintenanceType } from '../types';
 
 class ApiClient {
   private baseUrl: string;
@@ -48,7 +48,7 @@ class ApiClient {
 
     const token = this.getAuthToken();
     if (token) {
-      headers['Authorization'] = token;
+      (headers as Record<string, string>)['Authorization'] = token;
     }
 
     try {
