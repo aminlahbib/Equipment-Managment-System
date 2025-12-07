@@ -1,26 +1,56 @@
-<div class="page-container">
-  <h1>Equipment Dashboard</h1>
-  <!-- Placeholder for user info (username and token) -->
-  <div id="user-info" class="user-info"></div>
-  <div class="table-container">
-    <h2>Available Equipment</h2>
-    <table id="available-equipment-table" class="table table-bordered table-hover mt-4">
-      <thead>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Action</th>
-      </thead>
-      <tbody></tbody>
-    </table>
+<div class="page-container fade-in">
+    <header class="dashboard-header mb-xl" style="margin-top: var(--header-height); padding-top: var(--spacing-lg);">
+        <div class="header-content">
+            <div class="welcome-section">
+                <h1 class="mb-xs">Dashboard</h1>
+                <div id="user-info" class="text-secondary">Welcome back</div>
+            </div>
+            <div class="user-profile-card">
+                <div class="user-avatar">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <div class="user-details">
+                    <div id="user-full-name" class="user-name">Loading...</div>
+                    <div class="user-role">Member</div>
+                </div>
+            </div>
+        </div>
 
-    <h2>My Borrowed Equipment</h2>
-    <table id="borrowed-equipment-table" class="table table-bordered table-hover mt-4">
-      <thead>
-      <th>Name</th>
-      <th>Description</th>
-      <th>Action</th>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+        <div class="stats-overview">
+            <div class="stat-item">
+                <div class="stat-number" id="available-count">0</div>
+                <div class="stat-label">Available</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="borrowed-count">0</div>
+                <div class="stat-label">Borrowed</div>
+            </div>
+        </div>
+    </header>
+
+    <section class="mb-2xl">
+        <h2 class="mb-lg">Available Equipment</h2>
+        <!-- Grid layout for equipment cards -->
+        <div id="available-equipment-grid" class="equipment-grid">
+            <!-- Dynamic Content -->
+        </div>
+    </section>
+
+    <section>
+        <h2 class="mb-lg">Your Loans</h2>
+        <!-- Grid layout for borrowed equipment -->
+        <div id="borrowed-equipment-grid" class="equipment-grid">
+            <!-- Dynamic Content -->
+        </div>
+    </section>
 </div>
+
+<!-- Helper script to convert existing table logic to grid -->
+<script type="module">
+    // We need to wait for the main script to load data, then we can intercept/transform it
+    // Or better, update the main script to render cards instead of tables.
+    // For now, we will update equipments-dashboard.js to render cards.
+</script>

@@ -1,21 +1,37 @@
-<div id="login-container">
-  <h2 id="login-title">Login</h2>
+<div class="auth-container fade-in">
+    <div class="card auth-card">
+        <div class="text-center mb-xl">
+            <h2 class="auth-title">Welcome Back</h2>
+            <p class="text-secondary">Sign in to your account to continue</p>
+        </div>
 
-  <label id="username-label" for="username">Username</label>
-  <div id="username-container">
-    <input id="username" placeholder="Username" />
-    <span id="username-error" class="error-message"></span>
-  </div>
+        <form id="login-form" onsubmit="event.preventDefault();">
+            <div class="form-group" id="username-group">
+                <label class="form-label" for="username">Username</label>
+                <input class="form-input" id="username" type="text" placeholder="Enter your username" autocomplete="username" required />
+                <span id="username-error" class="error-message"></span>
+            </div>
 
-  <label id="password-label" for="password">Password</label>
-  <div id="password-container">
-    <input id="password" type="password" placeholder="Password" />
-    <span id="password-error" class="error-message"></span>
-  </div>
+            <div class="form-group" id="password-group">
+                <label class="form-label" for="password">Password</label>
+                <input class="form-input" id="password" type="password" placeholder="Enter your password" autocomplete="current-password" required />
+                <span id="password-error" class="error-message"></span>
+            </div>
 
-  <span id="user-details-error" class="error-message"></span>
+            <div class="flex-between mb-lg">
+                <label class="flex-center text-secondary" style="font-size: 14px; cursor: pointer;">
+                    <input type="checkbox" style="margin-right: 8px;"> Remember me
+                </label>
+                <a href="#" onclick="loadPage('forgot-password'); return false;" style="font-size: 14px;">Forgot Password?</a>
+            </div>
 
-  <a id="forgot-password-button" class="link">Forgot Password?</a> <!-- Ensure ID is correct -->
-  <button id="submit" class="mt-4">Login</button>
-  <a id="register-button" class="link">No Account? Register here</a>
+            <span id="user-details-error" class="error-message text-center mb-md"></span>
+
+            <button id="submit" class="btn btn-primary btn-large" style="width: 100%;">Sign In</button>
+        </form>
+
+        <div class="auth-links">
+            <p>Don't have an account? <a href="#" onclick="loadPage('register'); return false;">Create an account</a></p>
+        </div>
+    </div>
 </div>

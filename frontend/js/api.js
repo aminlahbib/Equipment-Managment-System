@@ -1,7 +1,8 @@
 import { loadPage } from './router.js' ;
 import { decodeToken } from './utilities.js';
+import { API_BASE_URL } from './config.js';
 
-const baseUrl = "http://localhost:8080/api/benutzer";
+const baseUrl = `${API_BASE_URL}/benutzer`;
 
 function getAuthorizationToken() {
     const token = sessionStorage.getItem("authentication_token");

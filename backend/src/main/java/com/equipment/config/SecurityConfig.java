@@ -32,7 +32,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configure(http))
+                .cors(org.springframework.security.config.Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/benutzer/register", "/api/benutzer/login", "/api/benutzer/reset-password").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -54,13 +54,33 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:63342", "http://localhost:8081")); // Allow frontend origin
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS")); // Allow OPTIONS for preflight
-        configuration.setAllowedHeaders(Arrays.asList("*")); // Allow all headers
-        configuration.setAllowCredentials(true); // Allow credentials (e.g., cookies)
+        
+        // Get allowed origins from environment variable (comma-separated)
+        String allowedOriginsEnv = System.getenv("CORS_ALLOWED_ORIGINS");
+        if (allowedOriginsEnv != null && !allowedOriginsEnv.isEmpty()) {
+            // Split by comma and trim whitespace
+            configuration.setAllowedOrigins(
+                Arrays.stream(allowedOriginsEnv.split(","))
+                    .map(String::trim)
+                    .toList()
+            );
+        } else {
+            // Default origins for development
+            configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:63342",
+                "http://localhost:8081",
+                "http://localhost:3000",
+                "https://*.vercel.app" // Vercel preview deployments
+            ));
+        }
+        
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L); // Cache preflight requests for 1 hour
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply to all endpoints
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
