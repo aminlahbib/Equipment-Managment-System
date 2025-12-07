@@ -36,13 +36,25 @@ This system enables organizations to manage equipment inventory and track loans 
 - **Loan History**: Complete audit trail of all equipment transactions
 - **Overdue Tracking**: Identify and track overdue loans
 - **Expected Return Dates**: Set and monitor expected return dates
+- **Loan Rules**: Configurable loan limits (max loans per user, duration limits, grace periods)
+- **Reservation System**: Reserve equipment for future use with date ranges
+- **Reservation Management**: View, confirm, and cancel reservations (admin and user)
 
 ### 👨‍💼 Admin Features
 - **User Management**: Full CRUD operations for users with search and filter
 - **Equipment Management**: Complete equipment lifecycle management
 - **Loan Management**: View current loans, history, and overdue items
 - **Account Control**: Manage user account status and roles
+- **Maintenance Management**: Schedule, track, and manage equipment maintenance
+- **Reservation Management**: View and confirm equipment reservations
 - **Comprehensive Dashboard**: Admin dashboard with overview and statistics
+
+### 🔧 Maintenance System
+- **Maintenance Scheduling**: Schedule maintenance for equipment with types (routine, repair, inspection, etc.)
+- **Maintenance Tracking**: Track maintenance status (scheduled, in progress, completed, cancelled, overdue)
+- **Maintenance History**: View complete maintenance history for each equipment
+- **Cost Tracking**: Track maintenance costs
+- **Automatic Status Updates**: Equipment status automatically updated during maintenance
 
 ### 📊 Audit & Logging
 - **Complete Audit Trail**: Track all equipment actions (BORROW, RETURN, CREATE, UPDATE, DELETE)
@@ -229,6 +241,10 @@ This project follows a structured learning path through modern DevOps practices:
 - `GET /api/benutzer/ausleihen` - Get my borrowed equipment
 - `POST /api/benutzer/ausleihen/{id}` - Borrow equipment
 - `POST /api/benutzer/rueckgabe/{id}` - Return equipment
+- `GET /api/benutzer/loan-rules` - Get loan rules configuration
+- `POST /api/benutzer/reservations` - Create equipment reservation
+- `GET /api/benutzer/reservations` - Get my reservations
+- `DELETE /api/benutzer/reservations/{id}` - Cancel reservation
 
 #### Admin Operations (Admin Only)
 - `GET /api/admin/users` - Get all users
@@ -243,6 +259,17 @@ This project follows a structured learning path through modern DevOps practices:
 - `GET /api/admin/ausleihen/current` - Get current loans
 - `GET /api/admin/ausleihen/history` - Get loan history
 - `GET /api/admin/ausleihen/overdue` - Get overdue loans
+- `POST /api/admin/maintenance` - Schedule maintenance
+- `PUT /api/admin/maintenance/{id}/start` - Start maintenance
+- `PUT /api/admin/maintenance/{id}/complete` - Complete maintenance
+- `GET /api/admin/maintenance/equipment/{id}` - Get maintenance history for equipment
+- `GET /api/admin/maintenance/scheduled` - Get scheduled maintenance
+- `GET /api/admin/maintenance/overdue` - Get overdue maintenance
+- `GET /api/admin/maintenance/status/{status}` - Get maintenance by status
+- `GET /api/admin/reservations` - Get all reservations
+- `GET /api/admin/reservations/equipment/{id}` - Get reservations for equipment
+- `PUT /api/admin/reservations/{id}/confirm` - Confirm reservation
+- `PUT /api/admin/reservations/{id}/cancel` - Cancel reservation (admin)
 
 For complete API documentation, see [API Contract](docs/API_CONTRACT.md).
 
