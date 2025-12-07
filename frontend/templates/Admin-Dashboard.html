@@ -55,57 +55,117 @@
 
         <!-- Equipment Section -->
         <div class="section" id="equipment-section">
-            <h2 class="mb-lg">Inventory</h2>
+            <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2>Inventory</h2>
+                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                    <button id="export-equipment-admin-csv" class="btn btn-ghost btn-small">Export CSV</button>
+                    <div class="search-filter-bar" style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="admin-equipment-search" class="form-input" placeholder="Search..." style="min-width: 200px;">
+                        <select id="admin-equipment-category" class="form-input" style="min-width: 120px;">
+                            <option value="">All Categories</option>
+                            <option value="LAPTOP">Laptop</option>
+                            <option value="PROJECTOR">Projector</option>
+                            <option value="CAMERA">Camera</option>
+                            <option value="AUDIO">Audio</option>
+                            <option value="OTHER">Other</option>
+                        </select>
+                        <select id="admin-equipment-status" class="form-input" style="min-width: 120px;">
+                            <option value="">All Status</option>
+                            <option value="AVAILABLE">Available</option>
+                            <option value="BORROWED">Borrowed</option>
+                            <option value="MAINTENANCE">Maintenance</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="equipment-loading-admin" class="text-center py-xl" style="display: none;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+            </div>
             <div class="table-container">
                 <table class="table" id="availableEquipmentTable">
-      <thead>
-      <tr>
-        <th>ID</th>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
                             <th>Inventory #</th>
-        <th>Description</th>
+                            <th>Description</th>
+                            <th>Category</th>
                             <th>Status</th>
-        <th>Action</th>
-      </tr>
-      </thead>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
                     <tbody></tbody>
-    </table>
+                </table>
             </div>
-  </div>
+            <div id="equipment-pagination-admin" class="pagination-container" style="display: none; margin-top: var(--spacing-lg);"></div>
+        </div>
 
         <!-- Users Section (Hidden by default) -->
         <div class="section hidden" id="users-section">
-            <h2 class="mb-lg">Users</h2>
+            <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2>Users</h2>
+                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                    <button id="export-users-csv" class="btn btn-ghost btn-small">Export CSV</button>
+                    <div class="search-filter-bar" style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="admin-users-search" class="form-input" placeholder="Search..." style="min-width: 200px;">
+                        <select id="admin-users-role" class="form-input" style="min-width: 120px;">
+                            <option value="">All Roles</option>
+                            <option value="USER">User</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                        <select id="admin-users-status" class="form-input" style="min-width: 120px;">
+                            <option value="">All Status</option>
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                            <option value="SUSPENDED">Suspended</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div id="users-loading-admin" class="text-center py-xl" style="display: none;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+            </div>
             <div class="table-container">
                 <table class="table" id="usersTable">
-      <thead>
-      <tr>
-        <th>ID</th>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
                             <th>Username</th>
                             <th>Name</th>
+                            <th>Role</th>
+                            <th>Status</th>
                             <th>Action</th>
-      </tr>
-      </thead>
+                        </tr>
+                    </thead>
                     <tbody></tbody>
-    </table>
+                </table>
             </div>
-  </div>
+            <div id="users-pagination-admin" class="pagination-container" style="display: none; margin-top: var(--spacing-lg);"></div>
+        </div>
 
         <!-- Loans Section (Hidden by default) -->
         <div class="section hidden" id="loans-section">
-            <h2 class="mb-lg">Current Loans</h2>
+            <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+                <h2>Current Loans</h2>
+                <button id="export-loans-admin-csv" class="btn btn-ghost btn-small">Export CSV</button>
+            </div>
+            <div id="loans-loading-admin" class="text-center py-xl" style="display: none;">
+                <div class="spinner" style="margin: 0 auto;"></div>
+            </div>
             <div class="table-container">
                 <table class="table" id="currentLoansTable">
-      <thead>
-      <tr>
-        <th>ID</th>
-        <th>User</th>
-        <th>Equipment</th>
-                            <th>Date</th>
-      </tr>
-      </thead>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>User</th>
+                            <th>Equipment</th>
+                            <th>Borrowed Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
                     <tbody></tbody>
-    </table>
+                </table>
             </div>
+            <div id="loans-pagination-admin" class="pagination-container" style="display: none; margin-top: var(--spacing-lg);"></div>
         </div>
     </main>
   </div>
