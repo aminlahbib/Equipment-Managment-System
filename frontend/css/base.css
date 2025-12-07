@@ -19,9 +19,14 @@ body {
     color: var(--text-primary);
     line-height: 1.5;
     min-height: 100vh;
+    /* Removed flex from body, moving to #app */
+    transition: background-color var(--transition-normal), color var(--transition-normal);
+}
+
+#app {
     display: flex;
     flex-direction: column;
-    transition: background-color var(--transition-normal), color var(--transition-normal);
+    min-height: 100vh;
 }
 
 /* Typography */

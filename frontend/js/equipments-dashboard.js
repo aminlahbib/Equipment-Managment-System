@@ -5,9 +5,8 @@ import { decodeToken } from './utilities.js';
 let availableEquipment = [];
 let borrowedEquipment = [];
 
-document.addEventListener("DOMContentLoaded", () => {
-    initDashboard();
-});
+// Initialize immediately since DOM is already loaded by router
+initDashboard();
 
 // Also expose init function for router to call
 window.initDashboard = async () => {
