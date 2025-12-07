@@ -9,6 +9,10 @@ public class AuthRequest {
     @NotBlank(message = "Password is required")
     private String password;
 
+    // Default constructor required for JSON deserialization
+    public AuthRequest() {
+    }
+
     public AuthRequest(String benutzername, String password) {
         this.benutzername = benutzername;
         this.password = password;
