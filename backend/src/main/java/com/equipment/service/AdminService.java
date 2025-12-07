@@ -1,16 +1,28 @@
 package com.equipment.service;
 
+import com.equipment.dto.*;
 import com.equipment.exception.EquipmentException;
 import com.equipment.model.Benutzer;
 import com.equipment.model.Equipment;
 import com.equipment.model.LogItem;
+import com.equipment.model.Ausleihe;
+import com.equipment.model.Role;
+import com.equipment.model.AccountStatus;
 import com.equipment.repository.AusleiheRepository;
 import com.equipment.repository.BenutzerRepository;
 import com.equipment.repository.EquipmentRepository;
 import com.equipment.repository.LogItemRepository;
+import com.equipment.repository.specification.EquipmentSpecifications;
+import com.equipment.repository.specification.BenutzerSpecifications;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -109,5 +121,108 @@ public class AdminService {
             throw EquipmentException.notFound("equipment with inventarnummer " + equipmentId + " not found.");
         }
         equipmentRepository.deleteById(equipmentId);
+    }
+
+    @Transactional
+    public Equipment updateEquipment(Integer equipmentId, UpdateEquipmentRequest request) {
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> EquipmentException.notFound("Equipment not found"));
+
+        if (request.getBezeichnung() != null && !request.getBezeichnung().trim().isEmpty()) {
+            equipment.setBezeichnung(request.getBezeichnung());
+        }
+        if (request.getDescription() != null) {
+            equipment.setDescription(request.getDescription());
+        }
+        if (request.getCategory() != null) {
+            equipment.setCategory(request.getCategory());
+        }
+        if (request.getStatus() != null) {
+            equipment.setStatus(request.getStatus());
+        }
+        if (request.getConditionStatus() != null) {
+            equipment.setConditionStatus(request.getConditionStatus());
+        }
+        if (request.getLocation() != null) {
+            equipment.setLocation(request.getLocation());
+        }
+        if (request.getSerialNumber() != null) {
+            equipment.setSerialNumber(request.getSerialNumber());
+        }
+        if (request.getPurchaseDate() != null) {
+            equipment.setPurchaseDate(request.getPurchaseDate());
+        }
+
+        return equipmentRepository.save(equipment);
+    }
+
+    public Page<Equipment> searchEquipment(EquipmentSearchRequest request) {
+        Specification<Equipment> spec = Specification.where(null);
+
+        if (request.getSearchTerm() != null) {
+            spec = spec.and(EquipmentSpecifications.hasSearchTerm(request.getSearchTerm()));
+        }
+        if (request.getCategory() != null) {
+            spec = spec.and(EquipmentSpecifications.hasCategory(request.getCategory()));
+        }
+        if (request.getStatus() != null) {
+            spec = spec.and(EquipmentSpecifications.hasStatus(request.getStatus()));
+        }
+        if (request.getConditionStatus() != null) {
+            spec = spec.and(EquipmentSpecifications.hasConditionStatus(request.getConditionStatus()));
+        }
+        if (request.getLocation() != null) {
+            spec = spec.and(EquipmentSpecifications.hasLocation(request.getLocation()));
+        }
+
+        Sort sort = Sort.by(
+            request.getSortDirection().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC,
+            request.getSortBy()
+        );
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        return equipmentRepository.findAll(spec, pageable);
+    }
+
+    public Page<Benutzer> searchUsers(UserSearchRequest request) {
+        Specification<Benutzer> spec = Specification.where(null);
+
+        if (request.getSearchTerm() != null) {
+            spec = spec.and(BenutzerSpecifications.hasSearchTerm(request.getSearchTerm()));
+        }
+        if (request.getRole() != null) {
+            spec = spec.and(BenutzerSpecifications.hasRole(request.getRole()));
+        }
+        if (request.getAccountStatus() != null) {
+            spec = spec.and(BenutzerSpecifications.hasAccountStatus(request.getAccountStatus()));
+        }
+
+        Sort sort = Sort.by(
+            request.getSortDirection().equalsIgnoreCase("DESC") ? Sort.Direction.DESC : Sort.Direction.ASC,
+            request.getSortBy()
+        );
+        Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+        return benutzerRepository.findAll(spec, pageable);
+    }
+
+    @Transactional
+    public Benutzer updateUser(Integer userId, AdminUpdateUserRequest request) {
+        Benutzer benutzer = benutzerRepository.findById(userId)
+                .orElseThrow(() -> EquipmentException.notFound("User not found"));
+
+        if (request.getRole() != null) {
+            benutzer.setRole(request.getRole());
+        }
+        if (request.getAccountStatus() != null) {
+            benutzer.setAccountStatus(request.getAccountStatus());
+        }
+
+        return benutzerRepository.save(benutzer);
+    }
+
+    public List<Ausleihe> getOverdueLoans() {
+        LocalDate today = LocalDate.now();
+        return ausleiheRepository.findByExpectedReturnDateBeforeAndExpectedReturnDateIsNotNull(today);
     }
 } 

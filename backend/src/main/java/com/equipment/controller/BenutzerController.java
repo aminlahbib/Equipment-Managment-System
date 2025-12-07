@@ -5,12 +5,15 @@ import com.equipment.service.BenutzerService;
 import com.equipment.service.AusleiheService;
 import com.equipment.model.Benutzer;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.List;
 
@@ -85,16 +88,40 @@ public class BenutzerController {
         return ResponseEntity.ok(ausleiheService.getBorrowedEquipmentForCurrentUser());
     }
 
-    //error handling
-    @PostMapping("/ausleihen/{equipmentId}")
-    public ResponseEntity<?> borrowEquipment(@PathVariable Integer equipmentId) {
-        ausleiheService.borrowEquipment(equipmentId);
-        return ResponseEntity.ok().build();
-    }
 
     @PostMapping("/rueckgabe/{equipmentId}")
     public ResponseEntity<?> returnEquipment(@PathVariable Integer equipmentId) {
         ausleiheService.returnEquipment(equipmentId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Benutzer> getProfile() {
+        Benutzer current = getCurrentUser();
+        return ResponseEntity.ok(benutzerService.getCurrentUserProfile(current));
+    }
+
+    @PutMapping("/profile")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Benutzer> updateProfile(@Valid @RequestBody UpdateUserRequest request) {
+        Benutzer current = getCurrentUser();
+        return ResponseEntity.ok(benutzerService.updateUserProfile(current, request));
+    }
+
+    @GetMapping("/equipment/search")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Page<?>> searchEquipment(@ModelAttribute EquipmentSearchRequest request) {
+        return ResponseEntity.ok(ausleiheService.searchEquipment(request));
+    }
+
+    @PostMapping("/ausleihen/{equipmentId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> borrowEquipment(
+            @PathVariable Integer equipmentId,
+            @RequestBody(required = false) Map<String, LocalDate> request) {
+        LocalDate expectedReturnDate = request != null ? request.get("expectedReturnDate") : null;
+        ausleiheService.borrowEquipment(equipmentId, expectedReturnDate);
         return ResponseEntity.ok().build();
     }
 
