@@ -140,11 +140,16 @@ public class AdminController {
 
     // Reservation admin endpoints
     @GetMapping("/reservations")
-    public ResponseEntity<List<com.equipment.model.Reservation>> getAllReservations() {
-        return ResponseEntity.ok(com.equipment.service.ReservationService.class);
+    public ResponseEntity<List<Reservation>> getAllReservations() {
+        return ResponseEntity.ok(reservationService.getPendingReservations());
+    }
+
+    @GetMapping("/reservations/equipment/{equipmentId}")
+    public ResponseEntity<List<Reservation>> getEquipmentReservations(@PathVariable Integer equipmentId) {
+        return ResponseEntity.ok(reservationService.getEquipmentReservations(equipmentId));
     }
 
     @PutMapping("/reservations/{reservationId}/confirm")
-    public ResponseEntity<com.equipment.model.Reservation> confirmReservation(@PathVariable Integer reservationId) {
-        return ResponseEntity.ok(com.equipment.service.ReservationService.class);
+    public ResponseEntity<Reservation> confirmReservation(@PathVariable Integer reservationId) {
+        return ResponseEntity.ok(reservationService.confirmReservation(reservationId));
     } 
