@@ -25,11 +25,19 @@ cd ..
 echo "Creating namespace..."
 kubectl apply -f k8s/01-namespace.yaml
 
-# Create secret (idempotent)
-echo "Creating secret..."
+# Create secrets (idempotent)
+echo "Creating secrets..."
 kubectl create secret generic db-secret \
   --from-literal=username=root \
   --from-literal=password=rootpassword \
+  --namespace=equipment-system \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+# Create JWT secret (idempotent)
+# Generate a secure random secret if not provided via JWT_SECRET env var
+JWT_SECRET_VALUE=${JWT_SECRET:-$(openssl rand -base64 32)}
+kubectl create secret generic jwt-secret \
+  --from-literal=secret="$JWT_SECRET_VALUE" \
   --namespace=equipment-system \
   --dry-run=client -o yaml | kubectl apply -f -
 
