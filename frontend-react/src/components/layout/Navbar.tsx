@@ -58,6 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
             <NavItem id="dashboard" label="Overview" />
             <NavItem id="equipment" label="Inventory" />
             <NavItem id="loans" label="Activity" />
+            {user?.role === 'ADMIN' && <NavItem id="admin" label="Admin" />}
           </div>
 
           {/* Right Section */}
@@ -156,6 +157,17 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
             >
               Activity
             </button>
+            {user?.role === 'ADMIN' && (
+              <button
+                onClick={() => {
+                  onNavigate('admin');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="block w-full text-left py-3 text-text-secondary border-b border-border"
+              >
+                Admin
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="block w-full text-left py-3 text-danger mt-2"
