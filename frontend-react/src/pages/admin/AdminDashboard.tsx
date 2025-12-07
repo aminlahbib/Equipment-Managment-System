@@ -46,7 +46,7 @@ export const AdminDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-background flex pt-20">
       <Sidebar currentSection={currentSection} onSectionChange={setCurrentSection} />
-      <main className="flex-1 ml-64 p-8">
+      <main className="flex-1 lg:ml-64 p-4 md:p-8 transition-all">
         {renderSection()}
       </main>
     </div>

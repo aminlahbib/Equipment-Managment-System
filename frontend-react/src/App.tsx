@@ -7,9 +7,12 @@ import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
+import { lazy, Suspense } from 'react';
 import { Dashboard } from './pages/Dashboard';
 import { Activity } from './pages/Activity';
-import { AdminDashboard } from './pages/admin/AdminDashboard';
+
+// Lazy load admin dashboard for code splitting
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard').then(module => ({ default: module.AdminDashboard })));
 
 function AppContent() {
   const [page, setPage] = useState('landing');
@@ -74,7 +77,18 @@ function AppContent() {
           </div>
         )}
         {page === 'loans' && <Activity />}
-        {page === 'admin' && <AdminDashboard />}
+        {page === 'admin' && (
+          <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-text-secondary">Loading admin dashboard...</p>
+              </div>
+            </div>
+          }>
+            <AdminDashboard />
+          </Suspense>
+        )}
         {!['dashboard', 'equipment', 'loans', 'admin'].includes(page) && (
           <div className="p-6">
             <h1 className="text-3xl font-bold">Page Not Found</h1>
