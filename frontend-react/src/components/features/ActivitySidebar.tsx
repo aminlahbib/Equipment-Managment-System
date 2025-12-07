@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw, Zap, Check, ArrowUpDown } from 'lucide-react';
+import { RotateCcw, Zap, Check } from 'lucide-react';
 import { Loan } from '../../types';
 import { Tooltip } from '../ui/Tooltip';
 import { SortMenu, SortOption } from './SortMenu';

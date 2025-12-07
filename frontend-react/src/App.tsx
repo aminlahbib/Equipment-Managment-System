@@ -7,7 +7,6 @@ import { Landing } from './pages/Landing';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
-import { lazy, Suspense } from 'react';
 import { Dashboard } from './pages/Dashboard';
 import { Activity } from './pages/Activity';
 

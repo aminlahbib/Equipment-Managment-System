@@ -70,7 +70,7 @@ export const Dashboard: React.FC = () => {
   // Get unique categories
   const categories = [
     'All',
-    ...Array.from(new Set(equipmentData.map((item) => item.category).filter(Boolean))),
+    ...Array.from(new Set(equipmentData.map((item) => item.category).filter((cat): cat is string => Boolean(cat)))),
   ];
 
   // Filter equipment
