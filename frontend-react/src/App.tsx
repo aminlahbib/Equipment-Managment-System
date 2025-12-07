@@ -8,6 +8,7 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
+import { Activity } from './pages/Activity';
 
 function AppContent() {
   const [page, setPage] = useState('landing');
@@ -71,12 +72,7 @@ function AppContent() {
             <p className="text-text-secondary mt-2">Equipment inventory coming soon...</p>
           </div>
         )}
-        {page === 'loans' && (
-          <div className="p-6">
-            <h1 className="text-3xl font-bold">Activity</h1>
-            <p className="text-text-secondary mt-2">Loan activity coming soon...</p>
-          </div>
-        )}
+        {page === 'loans' && <Activity />}
         {!['dashboard', 'equipment', 'loans'].includes(page) && (
           <div className="p-6">
             <h1 className="text-3xl font-bold">Page Not Found</h1>

@@ -8,6 +8,7 @@ import { SearchBar } from '../components/features/SearchBar';
 import { ViewToggle } from '../components/features/ViewToggle';
 import { EquipmentDetailsModal } from '../components/features/EquipmentDetailsModal';
 import { ActivitySidebar } from '../components/features/ActivitySidebar';
+import { ReservationsSection } from '../components/features/ReservationsSection';
 import { apiClient } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -257,7 +258,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Sidebar - Loans */}
-        <div className="lg:col-span-4">
+        <div className="lg:col-span-4 space-y-8">
           <ActivitySidebar
             loans={loanData}
             isLoading={isGlobalLoading}
@@ -268,6 +269,9 @@ export const Dashboard: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Reservations Section */}
+      <ReservationsSection />
 
       {/* Equipment Details Modal */}
       <EquipmentDetailsModal
