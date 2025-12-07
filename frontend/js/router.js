@@ -1,5 +1,5 @@
 import { initTheme } from './theme.js';
-import { decodeToken } from './utilities.js';
+import { decodeToken, showNavbar, hideNavbar } from './utilities.js';
 
 document.addEventListener("DOMContentLoaded", () => {
     initTheme();
@@ -44,6 +44,13 @@ export function loadPage(path) {
     if (!token && path !== "register" && path !== "login" && path !== "forgot-password") {
         window.location.hash = "login";
         return;
+    }
+
+    // Handle Navbar Visibility
+    if (path === "login" || path === "register" || path === "forgot-password") {
+        hideNavbar();
+    } else {
+        showNavbar();
     }
 
     const container = document.getElementById("container");
