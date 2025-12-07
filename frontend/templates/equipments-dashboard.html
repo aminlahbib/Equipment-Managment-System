@@ -94,7 +94,7 @@
         </div>
     </section>
 
-    <section>
+    <section class="mb-2xl">
         <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
             <h2>Your Loans</h2>
             <button id="export-loans-csv" class="btn btn-ghost btn-small" title="Export to CSV">
@@ -111,6 +111,53 @@
             <!-- Dynamic Content -->
         </div>
     </section>
+
+    <section>
+        <div class="flex-between mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+            <h2>Your Reservations</h2>
+            <button onclick="openReservationModal()" class="btn btn-primary btn-small">
+                <span style="margin-right: 4px;">+</span> New Reservation
+            </button>
+        </div>
+        <div id="reservations-loading" class="text-center py-xl" style="display: none;">
+            <div class="spinner" style="margin: 0 auto;"></div>
+        </div>
+        <div id="reservations-grid" class="equipment-grid">
+            <!-- Dynamic Content -->
+        </div>
+    </section>
+</div>
+
+<!-- Reservation Modal -->
+<div id="reservation-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Create Reservation</h3>
+            <button onclick="closeReservationModal()" class="close-btn">&times;</button>
+        </div>
+        <form id="reservationForm" onsubmit="event.preventDefault(); handleCreateReservation();">
+            <div class="form-group">
+                <label class="form-label" for="reservation-equipment-id">Equipment ID</label>
+                <input class="form-input" type="number" id="reservation-equipment-id" name="equipmentId" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="reservation-start-date">Start Date</label>
+                <input class="form-input" type="date" id="reservation-start-date" name="startDate" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="reservation-end-date">End Date (optional)</label>
+                <input class="form-input" type="date" id="reservation-end-date" name="endDate">
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="reservation-notes">Notes (optional)</label>
+                <textarea class="form-input" id="reservation-notes" name="notes" rows="3"></textarea>
+            </div>
+            <div class="flex-between mt-lg">
+                <button type="button" onclick="closeReservationModal()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Reservation</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- Helper script to convert existing table logic to grid -->

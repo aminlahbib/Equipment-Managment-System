@@ -5,7 +5,15 @@ import {
     deleteEquipment,
     getCurrentLoans,
     getLoanHistory,
-    deleteUser
+    deleteUser,
+    scheduleMaintenance,
+    startMaintenance,
+    completeMaintenance,
+    getScheduledMaintenance,
+    getOverdueMaintenance,
+    getAllReservations,
+    getEquipmentReservations,
+    confirmReservation
 } from './api.js';
 import notifications from './notifications.js';
 import { exportToCSV, flattenEquipmentData, flattenLoanData, flattenUserData } from './export.js';
@@ -49,6 +57,12 @@ let allUsers = [];
 
 // Loans
 let allLoans = [];
+
+// Maintenance
+let allMaintenance = [];
+
+// Reservations
+let allReservations = [];
 
 document.addEventListener("DOMContentLoaded", () => {
     initAdminDashboard();
@@ -194,6 +208,10 @@ function setupTabs() {
         document.getElementById('equipment-section').classList.add('hidden');
         document.getElementById('users-section').classList.add('hidden');
         document.getElementById('loans-section').classList.add('hidden');
+        const maintenanceSection = document.getElementById('maintenance-section');
+        const reservationsSection = document.getElementById('reservations-section');
+        if (maintenanceSection) maintenanceSection.classList.add('hidden');
+        if (reservationsSection) reservationsSection.classList.add('hidden');
         
         // Show selected section
         switch(sectionName) {
@@ -209,6 +227,18 @@ function setupTabs() {
                 break;
             case 'loans':
                 document.getElementById('loans-section').classList.remove('hidden');
+                break;
+            case 'maintenance':
+                if (maintenanceSection) {
+                    maintenanceSection.classList.remove('hidden');
+                    loadMaintenance();
+                }
+                break;
+            case 'reservations':
+                if (reservationsSection) {
+                    reservationsSection.classList.remove('hidden');
+                    loadReservations();
+                }
                 break;
         }
         currentSection = sectionName;
@@ -464,3 +494,182 @@ function getAccountStatusBadgeClass(status) {
         default: return 'badge-success';
     }
 }
+
+// --- Maintenance Functions ---
+
+async function loadMaintenance() {
+    const loadingEl = document.getElementById('maintenance-loading-admin');
+    const tableBody = document.getElementById("maintenanceTable")?.querySelector("tbody");
+    
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (tableBody) tableBody.innerHTML = '';
+
+    try {
+        allMaintenance = await getScheduledMaintenance();
+        
+        if (tableBody) {
+            if (allMaintenance.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-secondary">No scheduled maintenance found.</td></tr>`;
+            } else {
+                tableBody.innerHTML = allMaintenance.map(maintenance => `
+                    <tr>
+                        <td>${maintenance.id}</td>
+                        <td>${maintenance.equipment?.bezeichnung || 'N/A'} (${maintenance.equipment?.inventarnummer || 'N/A'})</td>
+                        <td>${maintenance.type || 'N/A'}</td>
+                        <td>${maintenance.scheduledDate ? new Date(maintenance.scheduledDate).toLocaleDateString() : 'N/A'}</td>
+                        <td><span class="badge ${getMaintenanceStatusBadgeClass(maintenance.status)}">${maintenance.status || 'N/A'}</span></td>
+                        <td>
+                            ${maintenance.status === 'SCHEDULED' ? `
+                                <button onclick="handleStartMaintenance(${maintenance.id})" class="btn btn-ghost btn-small">Start</button>
+                            ` : ''}
+                            ${maintenance.status === 'IN_PROGRESS' ? `
+                                <button onclick="handleCompleteMaintenance(${maintenance.id})" class="btn btn-ghost btn-small">Complete</button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `).join("");
+            }
+        }
+    } catch (error) {
+        console.error("Failed to load maintenance", error);
+        notifications.error("Failed to load maintenance: " + error.message);
+        if (tableBody) {
+            tableBody.innerHTML = `<tr><td colspan="6" class="text-center text-secondary">Failed to load maintenance. Please try again.</td></tr>`;
+        }
+    } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+    }
+}
+
+function getMaintenanceStatusBadgeClass(status) {
+    switch(status?.toUpperCase()) {
+        case 'SCHEDULED': return 'badge-secondary';
+        case 'IN_PROGRESS': return 'badge-warning';
+        case 'COMPLETED': return 'badge-success';
+        case 'CANCELLED': return 'badge-error';
+        case 'OVERDUE': return 'badge-error';
+        default: return 'badge-secondary';
+    }
+}
+
+window.handleStartMaintenance = async (id) => {
+    try {
+        await startMaintenance(id);
+        notifications.success("Maintenance started successfully!");
+        await loadMaintenance();
+        await loadEquipment();
+    } catch (error) {
+        notifications.error("Failed to start maintenance: " + error.message);
+    }
+};
+
+window.handleCompleteMaintenance = async (id) => {
+    try {
+        await completeMaintenance(id);
+        notifications.success("Maintenance completed successfully!");
+        await loadMaintenance();
+        await loadEquipment();
+    } catch (error) {
+        notifications.error("Failed to complete maintenance: " + error.message);
+    }
+};
+
+window.openScheduleMaintenanceModal = () => {
+    document.getElementById('schedule-maintenance-modal').classList.add('show');
+};
+
+window.closeScheduleMaintenanceModal = () => {
+    document.getElementById('schedule-maintenance-modal').classList.remove('show');
+};
+
+window.handleScheduleMaintenance = async () => {
+    const form = document.getElementById("scheduleMaintenanceForm");
+    const equipmentId = parseInt(document.getElementById("maintenance-equipment-id").value);
+    const type = document.getElementById("maintenance-type").value;
+    const description = document.getElementById("maintenance-description").value;
+    const scheduledDate = document.getElementById("maintenance-scheduled-date").value;
+    const cost = document.getElementById("maintenance-cost").value;
+
+    try {
+        await scheduleMaintenance({
+            equipmentId,
+            type,
+            description,
+            scheduledDate,
+            cost: cost ? parseFloat(cost) : null
+        });
+        window.closeScheduleMaintenanceModal();
+        form.reset();
+        notifications.success("Maintenance scheduled successfully!");
+        await loadMaintenance();
+        await loadEquipment();
+    } catch (error) {
+        notifications.error("Failed to schedule maintenance: " + error.message);
+    }
+};
+
+// --- Reservation Functions ---
+
+async function loadReservations() {
+    const loadingEl = document.getElementById('reservations-loading-admin');
+    const tableBody = document.getElementById("reservationsTable")?.querySelector("tbody");
+    
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (tableBody) tableBody.innerHTML = '';
+
+    try {
+        allReservations = await getAllReservations();
+        
+        if (tableBody) {
+            if (allReservations.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-secondary">No reservations found.</td></tr>`;
+            } else {
+                tableBody.innerHTML = allReservations.map(reservation => `
+                    <tr>
+                        <td>${reservation.id}</td>
+                        <td>${reservation.benutzer?.benutzername || 'N/A'}</td>
+                        <td>${reservation.equipment?.bezeichnung || 'N/A'} (${reservation.equipment?.inventarnummer || 'N/A'})</td>
+                        <td>${reservation.startDate ? new Date(reservation.startDate).toLocaleDateString() : 'N/A'}</td>
+                        <td>${reservation.endDate ? new Date(reservation.endDate).toLocaleDateString() : 'N/A'}</td>
+                        <td><span class="badge ${getReservationStatusBadgeClass(reservation.status)}">${reservation.status || 'N/A'}</span></td>
+                        <td>
+                            ${reservation.status === 'PENDING' ? `
+                                <button onclick="handleConfirmReservation(${reservation.id})" class="btn btn-ghost btn-small">Confirm</button>
+                            ` : ''}
+                        </td>
+                    </tr>
+                `).join("");
+            }
+        }
+    } catch (error) {
+        console.error("Failed to load reservations", error);
+        notifications.error("Failed to load reservations: " + error.message);
+        if (tableBody) {
+            tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-secondary">Failed to load reservations. Please try again.</td></tr>`;
+        }
+    } finally {
+        if (loadingEl) loadingEl.style.display = 'none';
+    }
+}
+
+function getReservationStatusBadgeClass(status) {
+    switch(status?.toUpperCase()) {
+        case 'PENDING': return 'badge-secondary';
+        case 'CONFIRMED': return 'badge-success';
+        case 'ACTIVE': return 'badge-warning';
+        case 'COMPLETED': return 'badge-success';
+        case 'CANCELLED': return 'badge-error';
+        case 'EXPIRED': return 'badge-error';
+        default: return 'badge-secondary';
+    }
+}
+
+window.handleConfirmReservation = async (id) => {
+    try {
+        await confirmReservation(id);
+        notifications.success("Reservation confirmed successfully!");
+        await loadReservations();
+    } catch (error) {
+        notifications.error("Failed to confirm reservation: " + error.message);
+    }
+};
