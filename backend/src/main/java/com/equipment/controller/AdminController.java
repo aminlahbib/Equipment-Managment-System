@@ -152,4 +152,5 @@ public class AdminController {
     @PutMapping("/reservations/{reservationId}/confirm")
     public ResponseEntity<Reservation> confirmReservation(@PathVariable Integer reservationId) {
         return ResponseEntity.ok(reservationService.confirmReservation(reservationId));
-    } 
+    }
+}
