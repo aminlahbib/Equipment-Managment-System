@@ -1,6 +1,7 @@
 import { searchEquipment, getMyBorrowedEquipment, borrowEquipment, returnEquipment } from './api.js';
 import { decodeToken } from './utilities.js';
 import notifications from './notifications.js';
+import { exportToCSV, flattenEquipmentData, flattenLoanData } from './export.js';
 
 // Global state
 let availableEquipment = [];
@@ -93,6 +94,33 @@ function setupEventListeners() {
             if (statusFilter) statusFilter.value = '';
             
             loadAvailableEquipment();
+        });
+    }
+
+    // Export buttons
+    const exportEquipmentBtn = document.getElementById('export-equipment-csv');
+    if (exportEquipmentBtn) {
+        exportEquipmentBtn.addEventListener('click', () => {
+            try {
+                const flattened = flattenEquipmentData(availableEquipment);
+                exportToCSV(flattened, `equipment-export-${new Date().toISOString().split('T')[0]}.csv`);
+                notifications.success('Equipment data exported successfully!');
+            } catch (error) {
+                notifications.error('Failed to export equipment: ' + error.message);
+            }
+        });
+    }
+
+    const exportLoansBtn = document.getElementById('export-loans-csv');
+    if (exportLoansBtn) {
+        exportLoansBtn.addEventListener('click', () => {
+            try {
+                const flattened = flattenLoanData(borrowedEquipment);
+                exportToCSV(flattened, `loans-export-${new Date().toISOString().split('T')[0]}.csv`);
+                notifications.success('Loan data exported successfully!');
+            } catch (error) {
+                notifications.error('Failed to export loans: ' + error.message);
+            }
         });
     }
 }
