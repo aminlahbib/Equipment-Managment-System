@@ -39,24 +39,12 @@ services:
       - loan-network
 
   frontend:
-    build: ./frontend
-    container_name: loan_frontend
-    ports:
-      - "8081:80"
-    environment:
-      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL}
-    depends_on:
-      - backend
-    networks:
-      - loan-network
-
-  frontend-react:
     build: ./frontend-react
-    container_name: loan_frontend_react
+    container_name: loan_frontend
     ports:
       - "3000:80"
     environment:
-      - REACT_APP_API_BASE_URL=${REACT_APP_API_BASE_URL:-http://localhost:8080}
+      - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8080}
     depends_on:
       - backend
     networks:
