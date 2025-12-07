@@ -80,6 +80,18 @@ function setupEventListeners() {
         });
     }
 
+    // Sort control
+    const sortControl = document.getElementById('equipment-sort');
+    if (sortControl) {
+        sortControl.addEventListener('change', (e) => {
+            const [sortBy, sortDirection] = e.target.value.split(':');
+            searchParams.sortBy = sortBy;
+            searchParams.sortDirection = sortDirection;
+            searchParams.page = 0;
+            loadAvailableEquipment();
+        });
+    }
+
     // Clear filters button
     const clearFilters = document.getElementById('clear-filters');
     if (clearFilters) {
