@@ -1,8 +1,10 @@
 package com.equipment.controller;
 
 import com.equipment.dto.*;
+import com.equipment.model.Reservation;
 import com.equipment.service.BenutzerService;
 import com.equipment.service.AusleiheService;
+import com.equipment.service.ReservationService;
 import com.equipment.model.Benutzer;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -23,10 +25,12 @@ public class BenutzerController {
 
     private final BenutzerService benutzerService;
     private final AusleiheService ausleiheService;
+    private final ReservationService reservationService;
 
-    public BenutzerController(BenutzerService benutzerService, AusleiheService ausleiheService) {
+    public BenutzerController(BenutzerService benutzerService, AusleiheService ausleiheService, ReservationService reservationService) {
         this.benutzerService = benutzerService;
         this.ausleiheService = ausleiheService;
+        this.reservationService = reservationService;
     }
 
     //error handling
@@ -129,6 +133,26 @@ public class BenutzerController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getLoanRules() {
         return ResponseEntity.ok(ausleiheService.getLoanRules());
+    }
+
+    // Reservation endpoints
+    @PostMapping("/reservations")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Reservation> createReservation(@Valid @RequestBody ReservationRequest request) {
+        return ResponseEntity.ok(reservationService.createReservation(request));
+    }
+
+    @GetMapping("/reservations")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<Reservation>> getMyReservations() {
+        return ResponseEntity.ok(reservationService.getMyReservations());
+    }
+
+    @DeleteMapping("/reservations/{reservationId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> cancelReservation(@PathVariable Integer reservationId) {
+        reservationService.cancelReservation(reservationId);
+        return ResponseEntity.ok().build();
     }
 
     private Benutzer getCurrentUser() {

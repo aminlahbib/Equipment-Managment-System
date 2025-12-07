@@ -5,8 +5,10 @@ import com.equipment.model.Benutzer;
 import com.equipment.model.Equipment;
 import com.equipment.model.MaintenanceRecord;
 import com.equipment.model.MaintenanceStatus;
+import com.equipment.model.Reservation;
 import com.equipment.service.AdminService;
 import com.equipment.service.MaintenanceService;
+import com.equipment.service.ReservationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,11 +27,13 @@ public class AdminController {
     private final AdminService adminService;
     private final AusleiheService ausleiheService;
     private final MaintenanceService maintenanceService;
+    private final ReservationService reservationService;
 
-    public AdminController(AdminService adminService, AusleiheService ausleiheService, MaintenanceService maintenanceService) {
+    public AdminController(AdminService adminService, AusleiheService ausleiheService, MaintenanceService maintenanceService, ReservationService reservationService) {
         this.adminService = adminService;
         this.ausleiheService = ausleiheService;
         this.maintenanceService = maintenanceService;
+        this.reservationService = reservationService;
     }
 
     @GetMapping("/users")
@@ -133,4 +137,14 @@ public class AdminController {
     public ResponseEntity<List<MaintenanceRecord>> getMaintenanceByStatus(@PathVariable MaintenanceStatus status) {
         return ResponseEntity.ok(maintenanceService.getMaintenanceByStatus(status));
     }
-} 
+
+    // Reservation admin endpoints
+    @GetMapping("/reservations")
+    public ResponseEntity<List<com.equipment.model.Reservation>> getAllReservations() {
+        return ResponseEntity.ok(com.equipment.service.ReservationService.class);
+    }
+
+    @PutMapping("/reservations/{reservationId}/confirm")
+    public ResponseEntity<com.equipment.model.Reservation> confirmReservation(@PathVariable Integer reservationId) {
+        return ResponseEntity.ok(com.equipment.service.ReservationService.class);
+    } 
