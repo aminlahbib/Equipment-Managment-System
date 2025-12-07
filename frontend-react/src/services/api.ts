@@ -62,6 +62,10 @@ class ApiClient {
         throw new Error('Session expired. Please log in again.');
       }
 
+      if (response.status === 403) {
+        throw new Error('Access denied. You do not have permission to perform this action.');
+      }
+
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Request failed' }));
         throw new Error(error.message || `Request failed with status ${response.status}`);
