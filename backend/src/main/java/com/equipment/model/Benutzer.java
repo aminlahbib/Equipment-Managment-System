@@ -28,6 +28,15 @@ public class Benutzer {
     @Column(name = "role", nullable = false, length = 20, columnDefinition = "varchar(20)")
     private Role role = Role.USER;
 
+    @Column(name = "two_factor_enabled", nullable = false)
+    private boolean twoFactorEnabled = false;
+
+    @Column(name = "two_factor_secret", length = 128)
+    private String twoFactorSecret;
+
+    @Column(name = "recovery_codes", length = 2048)
+    private String recoveryCodes; // Stored as comma-separated hashed codes
+
     public Benutzer(Integer id, String benutzername, String vorname, String nachname, byte[] passwordHash, byte[] passwordSalt, Role role) {
         this.id = id;
         this.benutzername = benutzername;
@@ -96,5 +105,29 @@ public class Benutzer {
 
     public void setRole(Role role) {
         this.role = role != null ? role : Role.USER;
+    }
+
+    public boolean isTwoFactorEnabled() {
+        return twoFactorEnabled;
+    }
+
+    public void setTwoFactorEnabled(boolean twoFactorEnabled) {
+        this.twoFactorEnabled = twoFactorEnabled;
+    }
+
+    public String getTwoFactorSecret() {
+        return twoFactorSecret;
+    }
+
+    public void setTwoFactorSecret(String twoFactorSecret) {
+        this.twoFactorSecret = twoFactorSecret;
+    }
+
+    public String getRecoveryCodes() {
+        return recoveryCodes;
+    }
+
+    public void setRecoveryCodes(String recoveryCodes) {
+        this.recoveryCodes = recoveryCodes;
     }
 }
